@@ -7,25 +7,26 @@ https://ieeexplore.ieee.org/document/9762257
 To cite:
 ```S. Sulun, M. E. P. Davies and P. Viana, "Symbolic music generation conditioned on continuous-valued emotions," in IEEE Access, doi: 10.1109/ACCESS.2022.3169744.```
 
+## Requirement
+
 Required Python libraries: Numpy, Pytorch, Pandas, pretty_midi, Pypianoroll, tqdm, Spotipy, Pytables. Or run: ```pip install -r requirements.txt```
+
+## Installation
 
 To create the Lakh-Spotify dataset:
 
 - Go to the ```src/create_dataset``` folder
 
 - Download the datasets:
+  - [Lakh pianoroll 5 full dataset](https://ucsdcloud-my.sharepoint.com/personal/h3dong_ucsd_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fh3dong%5Fucsd%5Fedu%2FDocuments%2Fdata%2Flpd%2Flpd%5F5%2Flpd%5F5%5Ffull%2Etar%2Egz&parent=%2Fpersonal%2Fh3dong%5Fucsd%5Fedu%2FDocuments%2Fdata%2Flpd%2Flpd%5F5&ga=1)
+  - MSD summary file
+    http://labrosa.ee.columbia.edu/millionsong/sites/default/files/AdditionalFiles/msd_summary_file.h5
+  - Echonest mapping dataset
+    ```ftp://ftp.acousticbrainz.org/pub/acousticbrainz/acousticbrainz-labs/download/msdrosetta/millionsongdataset_echonest.tar.bz2```
+    Alternatively: https://drive.google.com/file/d/1AZctGV7WysvsAaDCPWM1GVBvgaFz2Dys/view?usp=sharing
+  - Lakh-MSD matching scores file
+    http://hog.ee.columbia.edu/craffel/lmd/match_scores.json
 
-[Lakh pianoroll 5 full dataset](https://ucsdcloud-my.sharepoint.com/personal/h3dong_ucsd_edu/_layouts/15/onedrive.aspx?id=%2Fpersonal%2Fh3dong%5Fucsd%5Fedu%2FDocuments%2Fdata%2Flpd%2Flpd%5F5%2Flpd%5F5%5Ffull%2Etar%2Egz&parent=%2Fpersonal%2Fh3dong%5Fucsd%5Fedu%2FDocuments%2Fdata%2Flpd%2Flpd%5F5&ga=1)
-
-MSD summary file
-http://labrosa.ee.columbia.edu/millionsong/sites/default/files/AdditionalFiles/msd_summary_file.h5
-
-Echonest mapping dataset
-```ftp://ftp.acousticbrainz.org/pub/acousticbrainz/acousticbrainz-labs/download/msdrosetta/millionsongdataset_echonest.tar.bz2```
-Alternatively: https://drive.google.com/file/d/1AZctGV7WysvsAaDCPWM1GVBvgaFz2Dys/view?usp=sharing
-
-Lakh-MSD matching scores file
-http://hog.ee.columbia.edu/craffel/lmd/match_scores.json
 
 - Extract when necessary, and place all inside folder ```./data_files```
 
@@ -56,10 +57,13 @@ To train:
 - Go to ```src``` folder and run ```train.py``` with appropriate arguments. e.g:
 ```python train.py --conditioning continuous_concat```
 
+## Usage
+
 There are 4 different conditioning modes:
-```none```: No conditioning, vanilla model.
-```discrete_token```: Conditioning using discrete tokens, i.e. control tokens.
-```continuous_token```: Conditioning using continuous values embedded as vectors, then prepended to the other embedded tokens in sequence dimension.
-```continuous_concat```: Conditioning using continuous values embedded as vectors, then concatenated to all other embedded tokens in channel dimension.
+
+* ```none```: No conditioning, vanilla model.
+* ```discrete_token```: Conditioning using discrete tokens, i.e. control tokens.
+* ```continuous_token```: Conditioning using continuous values embedded as vectors, then prepended to the other embedded tokens in sequence dimension.
+* ```continuous_concat```: Conditioning using continuous values embedded as vectors, then concatenated to all other embedded tokens in channel dimension.
 
 See ```config.py``` for all options.
