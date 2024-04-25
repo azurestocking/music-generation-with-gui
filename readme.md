@@ -9,7 +9,7 @@ To cite:
 
 ## Requirement
 
-Required Python libraries: Numpy, Pytorch, Pandas, pretty_midi, Pypianoroll, tqdm, Spotipy, Pytables. Or run: ```pip install -r requirements.txt```
+To set up the environment, run: ```pip install -r requirements.txt```
 
 ## Installation
 
@@ -34,7 +34,7 @@ To create the Lakh-Spotify dataset:
 https://developer.spotify.com/dashboard/applications
 Then, fill in the variables "client_id" and "client_secret" in ```src/create_dataset/utils.py```
 
-- Run ```run.py```. 
+- Run ```run.py```
 
 To preprocess and create the training dataset:
 
@@ -49,7 +49,7 @@ https://drive.google.com/drive/folders/1R5-HaXmNzXBAhGq1idrDF-YEKkZm5C8C?usp=sha
 - Extract into the folder ```output```
 
 - Go to ```src``` folder and run ```generate.py``` with appropriate arguments. e.g:
-```python generate.py --model_dir continuous_concat --conditioning continuous_concat --valence -0.8, -0.8 0.8 0.8 --arousal -0.8 -0.8 0.8 0.8```
+```python generate.py --model_dir continuous_concat --conditioning continuous_concat --valence -0.8 -0.8 0.8 0.8 --arousal -0.8 -0.8 0.8 0.8```
 
 
 To train:
