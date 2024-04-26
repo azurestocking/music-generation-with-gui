@@ -27,30 +27,31 @@ output_directory = f"{model_directory}/generations"
 conditioning_type = "continuous_concat"
 
 # Specify timesteps for interpolation and generation length
-gen_len = 4096
-change_points = [1024, 2048, 3072]
+gen_len = 3072
+change_points = [1024, 2048]
 
 # Specify arousal values for each segment
-arousal_values = [-1.0, 1.0, -1.0, 1.0]
+arousal_values = [-1.0, 1.0, -1.0]
 
 # Initialize arousal to the right length and set the starting value
 arousal = np.zeros(gen_len)
-last_val = arousal_values[0]
 
 # Define patterns for arousal level
+arousal[:change_points[0]] = arousal_values[0]
+
 for i, point in enumerate(change_points):
-    start_index = 0 if i == 0 else change_points[i - 1]
-    end_index = point
+    start_index = point
+    end_index = change_points[i + 1] if i + 1 < len(change_points) else gen_len
     # Set the target value for this segment
-    end_val = arousal_values[i]
-    # Set the number of timesteps to finish interpolation
-    num_steps = min(100, end_index - start_index)
+    end_val = arousal_values[i + 1]
+    print(f"Interpolation starts at index {start_index} from {arousal[start_index - 1]} to {end_val}")
+    # Calculate the number of timesteps to finish interpolation dynamically
+    num_steps = min(64, end_index - start_index)
     # Set the linear interpolation
-    arousal[start_index:start_index + num_steps] = np.linspace(last_val, end_val, num_steps)
+    arousal[start_index:start_index + num_steps] = np.linspace(arousal[start_index - 1], end_val, num_steps)
     # Hold the last value of the interpolation until the next change point
     arousal[start_index + num_steps:end_index] = end_val
-    # Update last_val for the next segment
-    last_val = end_val
+    print(f"Interpolation finishes at index {start_index + num_steps} with value {end_val}")
 
 # Set a constant valence level
 valence = np.zeros(gen_len)
