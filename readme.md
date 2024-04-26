@@ -9,7 +9,7 @@ To cite:
 
 ## Requirement
 
-To set up the environment, run: ```pip install -r requirements.txt```
+To setup the environment, run: ```pip install -r requirements.txt```
 
 ## Installation
 
