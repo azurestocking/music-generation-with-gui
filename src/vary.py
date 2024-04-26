@@ -44,7 +44,7 @@ for i, point in enumerate(change_points):
     end_index = change_points[i + 1] if i + 1 < len(change_points) else gen_len
     # Set the target value for this segment
     end_val = arousal_values[i + 1]
-    print(f"Interpolation starts at index {start_index} from {arousal[start_index - 1]} to {end_val}")
+    print(f"Interpolation starts at index {start_index} from value {arousal[start_index - 1]}")
     # Calculate the number of timesteps to finish interpolation dynamically
     num_steps = min(64, end_index - start_index)
     # Set the linear interpolation
