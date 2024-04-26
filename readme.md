@@ -1,12 +1,3 @@
-Generates multi-instrument symbolic music (MIDI), based on user-provided emotions from valence-arousal plane. In simpler words, it can generate happy (positive valence, positive arousal), calm (positive valence, negative arousal), angry (negative valence, positive arousal) or sad (negative valence, negative arousal) music.
-
-Source code for our paper "Symbolic music generation conditioned on continuous-valued emotions", 
-Serkan Sulun, Matthew E. P. Davies, Paula Viana, 2022. 
-https://ieeexplore.ieee.org/document/9762257
-
-To cite:
-```S. Sulun, M. E. P. Davies and P. Viana, "Symbolic music generation conditioned on continuous-valued emotions," in IEEE Access, doi: 10.1109/ACCESS.2022.3169744.```
-
 ## Requirement
 
 To setup the environment, run: ```pip install -r requirements.txt```
@@ -67,3 +58,7 @@ There are 4 different conditioning modes:
 * ```continuous_concat```: Conditioning using continuous values embedded as vectors, then concatenated to all other embedded tokens in channel dimension.
 
 See ```config.py``` for all options.
+
+## Citation
+
+* S. Sulun, M. E. P. Davies and P. Viana, "Symbolic music generation conditioned on continuous-valued emotions," in IEEE Access, doi: 10.1109/ACCESS.2022.3169744
