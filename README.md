@@ -1,10 +1,8 @@
-Generate multi-instrument symbolic music based on user-provided emotions from valence-arousal plane.
-
-## Requirement
+## Prerequisite
 
 To setup the environment, run: ```pip install -r requirements.txt```
 
-## Installation
+## Usage
 
 To create the Lakh-Spotify dataset:
 
@@ -50,7 +48,7 @@ To train:
 - Go to ```src``` folder and run ```train.py``` with appropriate arguments. e.g:
 ```python train.py --conditioning continuous_concat```
 
-## Usage
+## Configuration
 
 There are 4 different conditioning modes:
 
@@ -61,6 +59,6 @@ There are 4 different conditioning modes:
 
 See ```config.py``` for all options.
 
-## Citation
+## Reference
 
 * Sulun, Serkan, Matthew E. P. Davies, and Paula Viana. 2022. “Symbolic Music Generation Conditioned on Continuous-Valued Emotions.” IEEE Access 10: 44617–26. https://doi.org/10.1109/ACCESS.2022.3169744.
