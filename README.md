@@ -63,4 +63,4 @@ See ```config.py``` for all options.
 
 ## Citation
 
-* S. Sulun, M. E. P. Davies and P. Viana, "Symbolic music generation conditioned on continuous-valued emotions," in IEEE Access, doi: 10.1109/ACCESS.2022.3169744
+* Sulun, Serkan, Matthew E. P. Davies, and Paula Viana. 2022. “Symbolic Music Generation Conditioned on Continuous-Valued Emotions.” IEEE Access 10: 44617–26. https://doi.org/10.1109/ACCESS.2022.3169744.
