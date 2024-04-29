@@ -3,6 +3,7 @@ import numpy as np
 from models.build_model import build_model
 from utils import get_n_instruments
 from data.data_processing_reverse import ind_tensor_to_mid, ind_tensor_to_str
+from generate import generate
 
 # Setup paths and device configuration
 model_directory = "../output/continuous_concat"
@@ -68,7 +69,6 @@ min_n_instruments = 2
 verbose = True
 
 # Call the generate function with the required arguments
-from generate import generate
 generate(
     model=model,
     maps=maps,
