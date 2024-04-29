@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Generator</title>
+</head>
+<body>
+<h1>Music Generator</h1>
+<form id="generateForm" onsubmit="submitForm(); return false;">
+    Change Points (comma-separated): <input type="text" id="change_points"><br>
+    Arousal Values (comma-separated): <input type="text" id="arousal_values"><br>
+    <button type="submit">Generate</button>
+</form>
+<script>
+function submitForm() {
+    fetch('/generate', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            change_points: document.getElementById('change_points').value,
+            arousal_values: document.getElementById('arousal_values').value
+        })
+    }).then(response => response.json())
+    .then(data => {
+        alert(data.message);
+        if (data.download_url) {
+            window.location.href = data.download_url;
+        }
+    }).catch(error => console.error('Error:', error));
+}
+</script>
+</body>
+</html>
