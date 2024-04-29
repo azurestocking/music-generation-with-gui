@@ -13,11 +13,10 @@ To create the Lakh-Spotify dataset:
   - MSD summary file
     http://labrosa.ee.columbia.edu/millionsong/sites/default/files/AdditionalFiles/msd_summary_file.h5
   - Echonest mapping dataset
-    ```ftp://ftp.acousticbrainz.org/pub/acousticbrainz/acousticbrainz-labs/download/msdrosetta/millionsongdataset_echonest.tar.bz2```
-    Alternatively: https://drive.google.com/file/d/1AZctGV7WysvsAaDCPWM1GVBvgaFz2Dys/view?usp=sharing
+    ```ftp://ftp.acousticbrainz.org/pub/acousticbrainz/acousticbrainz-labs/download/msdrosetta/millionsongdataset_echonest.tar.bz2``` or https://drive.google.com/file/d/1AZctGV7WysvsAaDCPWM1GVBvgaFz2Dys/view?usp=sharing
   - Lakh-MSD matching scores file
     http://hog.ee.columbia.edu/craffel/lmd/match_scores.json
-
+  
 - Extract when necessary, and place all inside folder ```./data_files```
 
 - Get Spotify client ID and client secret:
@@ -55,14 +54,14 @@ https://drive.google.com/drive/folders/1R5-HaXmNzXBAhGq1idrDF-YEKkZm5C8C?usp=sha
 To generate MIDI using pretrained models with style interpolation:
 
 * Replicate the previous steps
-* Go to `vary.py` and modify `gen_len`, `change_points`, `arousal_values`, etc.
+* Go to ```src``` folder and modify `vary.py`
 * Run `vary.py`
 
 To generate MIDI using pretrained models with style interpolation on user interface:
 
 * Replicate the previous steps
-* Run `flask run` and designate the change points and arousal values for each point by clicking `Append`
-* Click `Generate`
+* Go to ```src``` folder and run `flask run` 
+* Designate the change points and arousal values for each point in the browser
 
 ## Reference
 
