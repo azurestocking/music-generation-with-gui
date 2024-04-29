@@ -38,6 +38,8 @@ def generate_music():
     change_points = list(map(int, data['change_points'].split(',')))
     arousal_values = list(map(float, data['arousal_values'].split(',')))
     gen_len = 3072
+    print("Change points:", change_points)
+    print("Arousal values:", arousal_values)
     
     # Initialize arousal and valence arrays
     arousal = np.zeros(gen_len)
