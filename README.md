@@ -1,6 +1,20 @@
 ## Prerequisite
 
-To setup the environment, run: ```pip install -r requirements.txt```
+* Python 3.8 (ubuntu 20.04)
+
+* Node.js
+
+## Installation
+
+To setup the environment: 
+
+```
+npm install -g http-server
+```
+
+```
+pip install -r requirements.txt
+```
 
 ## Usage
 
