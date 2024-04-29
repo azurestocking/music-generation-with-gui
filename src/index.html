@@ -7,11 +7,30 @@
 <body>
 <h1>Music Generator</h1>
 <form id="generateForm" onsubmit="submitForm(); return false;">
-    Change Points (comma-separated): <input type="text" id="change_points"><br>
-    Arousal Values (comma-separated): <input type="text" id="arousal_values"><br>
+    <p>Change Points (comma-separated):</p>
+    <input type="text" id="change_points"><br>
+    <hr>
+    <p>Arousal Values:</p>
+    <input type="range" id="slider1" min="-1.0" max="1.0" step="1.0" value="0">
+    <input type="range" id="slider2" min="-1.0" max="1.0" step="1.0" value="0">
+    <input type="range" id="slider3" min="-1.0" max="1.0" step="1.0" value="0"><br>
+    <button type="button" onclick="appendArousal()">Append</button><br>
+    <hr>
+    Arousal Values: <span id="arousal_list">[]</span><br>
     <button type="submit">Generate</button>
 </form>
 <script>
+var arousalValues = [];
+
+function appendArousal() {
+    var slider1 = parseFloat(document.getElementById('slider1').value);
+    var slider2 = parseFloat(document.getElementById('slider2').value);
+    var slider3 = parseFloat(document.getElementById('slider3').value);
+    var average = (slider1 + slider2 + slider3) / 3;
+    arousalValues.push(average.toFixed(2));
+    document.getElementById('arousal_list').innerText = JSON.stringify(arousalValues);
+}
+
 function submitForm() {
     alert('Values submitted successfully.');
 
@@ -22,7 +41,7 @@ function submitForm() {
         },
         body: JSON.stringify({
             change_points: document.getElementById('change_points').value,
-            arousal_values: document.getElementById('arousal_values').value
+            arousal_values: arousalValues
         })
     }).then(response => response.json())
     .then(data => {
