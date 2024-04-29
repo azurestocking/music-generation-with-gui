@@ -18,7 +18,6 @@ To create the Lakh-Spotify dataset:
   - Lakh-MSD matching scores file
     http://hog.ee.columbia.edu/craffel/lmd/match_scores.json
 
-
 - Extract when necessary, and place all inside folder ```./data_files```
 
 - Get Spotify client ID and client secret:
@@ -31,8 +30,12 @@ To preprocess and create the training dataset:
 
 - Go to the ```src/data``` folder and run ```preprocess_pianorolls.py```
 
+To train:
 
-To generate MIDI using pretrained models:
+- Go to ```src``` folder and run ```train.py``` with appropriate arguments. e.g:
+```python train.py --conditioning continuous_concat```
+
+To generate MIDI using pretrained models without style interpolation:
 
 - Download model(s) from the following link:
 https://drive.google.com/drive/folders/1R5-HaXmNzXBAhGq1idrDF-YEKkZm5C8C?usp=sharing
@@ -40,24 +43,26 @@ https://drive.google.com/drive/folders/1R5-HaXmNzXBAhGq1idrDF-YEKkZm5C8C?usp=sha
 - Extract into the folder ```output```
 
 - Go to ```src``` folder and run ```generate.py``` with appropriate arguments. e.g:
-```python generate.py --model_dir continuous_concat --conditioning continuous_concat --valence -0.8 -0.8 0.8 0.8 --arousal -0.8 -0.8 0.8 0.8```
+  ```python generate.py --model_dir continuous_concat --conditioning continuous_concat --valence -0.8 -0.8 0.8 0.8 --arousal -0.8 -0.8 0.8 0.8```
+  - There are 4 different conditioning modes:
+      - ```none```: no conditioning, vanilla model
+      - ```discrete_token```: conditioning using discrete tokens, i.e. control tokens
+      - ```continuous_token```: conditioning using continuous values embedded as vectors, then prepended to the other embedded tokens in sequence dimension
+      - ```continuous_concat```: conditioning using continuous values embedded as vectors, then concatenated to all other embedded tokens in channel dimension
 
+  - See ```config.py``` for all options
 
-To train:
+To generate MIDI using pretrained models with style interpolation:
 
-- Go to ```src``` folder and run ```train.py``` with appropriate arguments. e.g:
-```python train.py --conditioning continuous_concat```
+* Replicate the previous steps
+* Go to `vary.py` and modify `gen_len`, `change_points`, `arousal_values`, etc.
+* Run `vary.py`
 
-## Configuration
+To generate MIDI using pretrained models with style interpolation on user interface:
 
-There are 4 different conditioning modes:
-
-* ```none```: No conditioning, vanilla model.
-* ```discrete_token```: Conditioning using discrete tokens, i.e. control tokens.
-* ```continuous_token```: Conditioning using continuous values embedded as vectors, then prepended to the other embedded tokens in sequence dimension.
-* ```continuous_concat```: Conditioning using continuous values embedded as vectors, then concatenated to all other embedded tokens in channel dimension.
-
-See ```config.py``` for all options.
+* Replicate the previous steps
+* Run `flask run` and designate the change points and arousal values for each point by clicking `Append`
+* Click `Generate`
 
 ## Reference
 
