@@ -5,52 +5,67 @@
     <title>Music Generator</title>
 </head>
 <body>
-<h1>Music Generator</h1>
-<form id="generateForm" onsubmit="submitForm(); return false;">
-    <p>Change Points (comma-separated):</p>
-    <input type="text" id="change_points"><br>
-    <hr>
-    <p>Arousal Values:</p>
-    <input type="range" id="slider1" min="-1.0" max="1.0" step="1.0" value="0">
-    <input type="range" id="slider2" min="-1.0" max="1.0" step="1.0" value="0">
-    <input type="range" id="slider3" min="-1.0" max="1.0" step="1.0" value="0"><br>
-    <button type="button" onclick="appendArousal()">Append</button><br>
-    <hr>
-    Arousal Values: <span id="arousal_list">[]</span><br>
-    <button type="submit">Generate</button>
-</form>
-<script>
-var arousalValues = [];
+    <h1>Music Generator</h1>
+    <form id="generateForm" onsubmit="submitForm(); return false;">
+        <p>Change Points (comma-separated):</p>
+        <input type="text" id="change_points"><br>
+        <hr>
+        <p>Arousal Values:</p>
+        <input type="range" id="slider1" min="-1.0" max="1.0" step="1.0" value="0">
+        <input type="range" id="slider2" min="-1.0" max="1.0" step="1.0" value="0">
+        <input type="range" id="slider3" min="-1.0" max="1.0" step="1.0" value="0"><br>
+        <button type="button" onclick="appendArousal()">Append</button><br>
+        <hr>
+        Arousal Values: <span id="arousal_list">[]</span><br>
+        <button type="submit">Generate</button>
+    </form>
 
-function appendArousal() {
-    var slider1 = parseFloat(document.getElementById('slider1').value);
-    var slider2 = parseFloat(document.getElementById('slider2').value);
-    var slider3 = parseFloat(document.getElementById('slider3').value);
-    var average = (slider1 + slider2 + slider3) / 3;
-    arousalValues.push(average.toFixed(2));
-    document.getElementById('arousal_list').innerText = JSON.stringify(arousalValues);
-}
+    <midi-player id="midiPlayer" sound-font visualizer="#midiVisualizer"></midi-player>
+    <midi-visualizer type="piano-roll" id="midiVisualizer"></midi-visualizer>
 
-function submitForm() {
-    alert('Values submitted successfully.');
+    <button type="button" onclick="reloadPage()">Reload Page</button>
 
-    fetch('/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            change_points: document.getElementById('change_points').value,
-            arousal_values: arousalValues
-        })
-    }).then(response => response.json())
-    .then(data => {
-        alert(data.message);
-        if (data.download_url) {
-            window.location.href = data.download_url;
+    <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
+    <script>
+        var arousalValues = [];
+
+        function appendArousal() {
+            var slider1 = parseFloat(document.getElementById('slider1').value);
+            var slider2 = parseFloat(document.getElementById('slider2').value);
+            var slider3 = parseFloat(document.getElementById('slider3').value);
+            var average = (slider1 + slider2 + slider3) / 3;
+            arousalValues.push(average.toFixed(2));
+            document.getElementById('arousal_list').innerText = JSON.stringify(arousalValues);
         }
-    }).catch(error => console.error('Error:', error));
-}
-</script>
+
+        function submitForm() {
+            alert('Values submitted successfully.');
+            
+            fetch('/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    change_points: document.getElementById('change_points').value,
+                    arousal_values: arousalValues
+                })
+            }).then(response => response.json())
+            .then(data => {
+                alert(data.message);
+
+                if (data.midi_url) {
+                    const player = document.getElementById('midiPlayer');
+                    player.src = data.midi_url;
+                    player.reload();
+                }
+            }).catch(error => console.error('Error:', error));
+        }
+    </script>
+    <script>
+        function reloadPage() {
+            window.location.reload(true);
+        }
+    </script>
 </body>
 </html>

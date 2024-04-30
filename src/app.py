@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, send_file
 import torch
 import numpy as np
 import os
@@ -86,22 +86,17 @@ def generate_music():
     latest_file = max(list_of_files, key=os.path.getctime, default=None)
     if latest_file:
         filename = os.path.basename(latest_file)
-        return jsonify({"message": "File generated successfully.", "download_url": f"/download/{filename}"})
+        return jsonify({"message": "File generated successfully.", "midi_url": f"/midi/{filename}"})
     else:
         return jsonify({"message": "No file generated."}), 404
 
-import traceback
-
-@app.route('/download/<filename>', methods=['GET'])
-def download_file(filename):
-    print("Directory:", output_directory)
-    print("Filename:", filename)
-
+@app.route('/midi/<filename>')
+def serve_midi(filename):
     try:
-        return send_from_directory(directory=output_directory, filename=filename, as_attachment=True)
+        file_path = os.path.join(output_directory, filename)
+        return send_file(file_path, mimetype='audio/midi')
     except Exception as e:
-        tb = traceback.format_exc()
-        return f"{str(e)}\n{tb}", 500 # for debug
+        return str(e), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
