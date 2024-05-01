@@ -35,7 +35,8 @@ def home():
 @app.route('/generate', methods=['POST'])
 def generate_music():
     data = request.get_json()
-    change_points = list(map(int, data['change_points'].split(',')))
+    change_points = list(map(int, data['change_points']))
+    change_points.pop(0)
     arousal_values = list(map(float, data['arousal_values']))
     gen_len = 3072
     print("Change points:", change_points)

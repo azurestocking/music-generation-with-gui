@@ -1,0 +1,35 @@
+.container {
+    width: 720px;
+}
+
+.container-inner {
+    border: 1px solid LightGray;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.card {
+    width: 400px;
+}
+
+#change_points, #arousal_list {
+    height: 14px; 
+    background-color: white; 
+    position: relative; 
+    width: 100%; 
+    margin-top: 2px;
+    overflow: visible;
+}
+
+.indicator {
+    position: absolute;
+    height: 100%;
+    color: black;
+    font-size: 14px;
+    white-space: nowrap;
+    transform: translateY(-50%);
+}
+
+.btn {
+    margin-top: 1rem;
+}
