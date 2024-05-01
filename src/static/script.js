@@ -1,8 +1,14 @@
 let arousalValues = [];
 let changePoints = [];
+
 let lastPosition = 0;
 let savedPosition = [];
 let isStartingValueSet = false;
+
+window.onload = function() {
+    setupSlider();
+    document.getElementById('valueSetterBtn').addEventListener('click', toggleValueSetter);
+};
 
 function setupSlider() {
     const slider = document.getElementById('mainSlider');
@@ -21,26 +27,16 @@ function setupSlider() {
     });
 }
 
-function updateIndicators() {
-    const changePointsContainer = document.getElementById('change_points');
-    const arousalListContainer = document.getElementById('arousal_list');
+function toggleValueSetter() {
+    const valueSetter = document.getElementById('valueSetter');
+    new bootstrap.Collapse(valueSetter, {toggle: true}).toggle();
+}
 
-    changePointsContainer.innerHTML = '';
-    arousalListContainer.innerHTML = '';
-
-    changePoints.forEach((point, index) => {
-        const changePointIndicator = document.createElement('div');
-        changePointIndicator.className = 'indicator';
-        changePointIndicator.style.left = (point / 3072 * 100) + '%';
-        changePointIndicator.innerText = point;
-        changePointsContainer.appendChild(changePointIndicator);
-
-        const arousalValueIndicator = document.createElement('div');
-        arousalValueIndicator.className = 'indicator';
-        arousalValueIndicator.style.left = (point / 3072 * 100) + '%';
-        arousalValueIndicator.innerText = arousalValues[index];
-        arousalListContainer.appendChild(arousalValueIndicator);
-    });
+function collapseValueSetter() {
+    const valueSetter = document.getElementById('valueSetter');
+    if (new bootstrap.Collapse(valueSetter, {toggle: false})._isShown()) {
+        new bootstrap.Collapse(valueSetter).hide();
+    }
 }
 
 function appendArousal() {
@@ -75,22 +71,27 @@ function appendArousal() {
     updateIndicators();
 }
 
-function toggleValueSetter() {
-    const valueSetter = document.getElementById('valueSetter');
-    new bootstrap.Collapse(valueSetter, {toggle: true}).toggle();
-}
+function updateIndicators() {
+    // const changePointsContainer = document.getElementById('change_points');
+    const arousalListContainer = document.getElementById('arousal_list');
 
-function collapseValueSetter() {
-    const valueSetter = document.getElementById('valueSetter');
-    if (new bootstrap.Collapse(valueSetter, {toggle: false})._isShown()) {
-        new bootstrap.Collapse(valueSetter).hide();
-    }
-}
+    // changePointsContainer.innerHTML = '';
+    arousalListContainer.innerHTML = '';
 
-window.onload = function() {
-    setupSlider();
-    document.getElementById('valueSetterBtn').addEventListener('click', toggleValueSetter);
-};
+    changePoints.forEach((point, index) => {
+        // const changePointIndicator = document.createElement('div');
+        // changePointIndicator.className = 'indicator';
+        // changePointIndicator.style.left = (point / 3072 * 100) + '%';
+        // changePointIndicator.innerText = point;
+        // changePointsContainer.appendChild(changePointIndicator);
+
+        const arousalValueIndicator = document.createElement('div');
+        arousalValueIndicator.className = 'indicator';
+        arousalValueIndicator.style.left = (point / 3072 * 100) + '%';
+        arousalValueIndicator.innerText = arousalValues[index];
+        arousalListContainer.appendChild(arousalValueIndicator);
+    });
+}
 
 function submitForm() {
     alert('Values submitted successfully.');

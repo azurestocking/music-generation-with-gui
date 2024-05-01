@@ -2,22 +2,72 @@
     width: 720px;
 }
 
-.container-inner {
+.section-container {
     border: 1px solid LightGray;
     padding: 1rem;
     border-radius: 12px;
+    margin-bottom: 1rem;
+}
+
+.center-container {
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+}
+
+.spinner-grow {
+    margin-top: 1rem;
+    width: 2rem;
+    height: 2rem;
+    display: none;
 }
 
 .card {
     width: 400px;
 }
 
+.card-body button {
+    margin-top: 1rem;
+}
+
+#valueSetterBtn {
+    --bs-btn-padding-x: 0rem;
+    --bs-btn-padding-y: 0rem;
+    --bs-btn-font-size: 0.7rem;
+    --bs-btn-color: black;
+    --bs-btn-bg: none;
+    --bs-btn-border-color: none;
+    --bs-btn-hover-color: black;
+    --bs-btn-hover-bg: none;
+    --bs-btn-hover-border-color: none;
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: black;
+    --bs-btn-active-bg: none;
+    --bs-btn-active-border-color: none;
+    --bs-btn-active-shadow: none;
+    --bs-btn-disabled-color: black;
+    --bs-btn-disabled-bg: none;
+    --bs-btn-disabled-border-color: none;
+}
+
+#midiPlayer {
+    width: 100%;
+    height: 60px;
+}
+
+#midiVisualizer {
+    width: 100%;
+}
+
+#change_points, #arousal_list:empty {
+    display: none;
+}
+
 #change_points, #arousal_list {
-    height: 14px; 
+    height: 1rem; 
     background-color: white; 
     position: relative; 
     width: 100%; 
-    margin-top: 2px;
     overflow: visible;
 }
 
@@ -25,11 +75,7 @@
     position: absolute;
     height: 100%;
     color: black;
-    font-size: 14px;
+    font-size: 1rem;
     white-space: nowrap;
     transform: translateY(-50%);
-}
-
-.btn {
-    margin-top: 1rem;
 }
