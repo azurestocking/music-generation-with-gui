@@ -78,15 +78,15 @@ midi-visualizer .piano-roll-visualizer {
 }
 
 midi-visualizer svg rect.note {
-    opacity: 0.5;
+    fill: black;
 }
 
 midi-visualizer svg rect.note[data-instrument="0"]{
-    fill: #0d6efd;
+    fill: black;
 }
 
 midi-visualizer svg rect.note[data-instrument="2"]{
-    fill: #d63384;
+    fill: black;
 }
 
 midi-visualizer svg rect.note[data-is-drum="true"]{
@@ -94,7 +94,7 @@ midi-visualizer svg rect.note[data-is-drum="true"]{
 }
 
 midi-visualizer svg rect.note.active {
-    opacity: 1.0;
+    fill: #0d6efd;
 }
 
 #change_points, #arousal_list:empty {
