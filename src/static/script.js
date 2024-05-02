@@ -8,6 +8,7 @@ let isStartingValueSet = false;
 window.onload = function() {
     setupSlider();
     document.getElementById('valueSetterBtn').addEventListener('click', toggleValueSetter);
+    setupModal();
 };
 
 function setupSlider() {
@@ -19,11 +20,14 @@ function setupSlider() {
         } else {
             collapseValueSetter();
         }
-        // Check if the user moves the slider from position 0 without specifying values
+
+        // Check if the user moves the slider from position 0 without specifying any value
         if (slider.value !== '0' && !isStartingValueSet) {
-            alert("Please set an arousal value for position 0 before moving the slider.");
+            showModal("Please set an arousal value for position 0 before moving the slider.");
             slider.value = '0';
         }
+
+        console.log("All backdrops in DOM:", document.querySelectorAll('.modal-backdrop'));
     });
 }
 
@@ -43,9 +47,9 @@ function appendArousal() {
     const slider = document.getElementById('mainSlider');
     const position = slider.value;
 
-    // Check if values have already been specified for this position
+    // Check if any value has already been specified for this position
     if (savedPosition.includes(position)) {
-        alert("Arousal value for this position has already been set. Please choose a different position.");
+        showModal("Arousal value for this position has already been set. Please choose a different position.");
         return;
     }
 
@@ -72,19 +76,11 @@ function appendArousal() {
 }
 
 function updateIndicators() {
-    // const changePointsContainer = document.getElementById('change_points');
     const arousalListContainer = document.getElementById('arousal_list');
 
-    // changePointsContainer.innerHTML = '';
     arousalListContainer.innerHTML = '';
 
     changePoints.forEach((point, index) => {
-        // const changePointIndicator = document.createElement('div');
-        // changePointIndicator.className = 'indicator';
-        // changePointIndicator.style.left = (point / 3072 * 100) + '%';
-        // changePointIndicator.innerText = point;
-        // changePointsContainer.appendChild(changePointIndicator);
-
         const arousalValueIndicator = document.createElement('div');
         arousalValueIndicator.className = 'indicator';
         arousalValueIndicator.style.left = (point / 3072 * 100) + '%';
@@ -94,11 +90,12 @@ function updateIndicators() {
 }
 
 function submitForm() {
-    alert('Values submitted successfully.');
+    collapseValueSetter();
+    showModal('Values submitted successfully.');
 
     const spinner = document.getElementById('loadingSpinner');
     spinner.style.display = 'block';
-    
+
     fetch('/generate', {
         method: 'POST',
         headers: {
@@ -111,7 +108,7 @@ function submitForm() {
     }).then(response => response.json())
     .then(data => {
         spinner.style.display = 'none';
-        alert(data.message);
+        showModal(data.message);
 
         if (data.midi_url) {
             const player = document.getElementById('midiPlayer');
@@ -121,8 +118,28 @@ function submitForm() {
     }).catch(error => {
         console.error('Error:', error);
         spinner.style.display = 'none';
-        alert('Failed to generate music, please try again.');
+        showModal('Failed to generate music, please try again.');
     });
+}
+
+function setupModal() {
+    const modalElement = document.querySelector('.modal');
+
+    window.showModal = function(message) {
+        document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+
+        modalElement.querySelector('.modal-body').textContent = message;
+        const modalInstance = new bootstrap.Modal(modalElement);
+
+        modalInstance.show();
+        document.body.style.overflow = 'hidden';
+
+        modalElement.addEventListener('hidden.bs.modal', function onModalHidden() {
+            modalInstance.dispose();
+            document.body.style.overflow = 'auto';
+            modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
+        });
+    }
 }
 
 function reloadPage() {

@@ -1,5 +1,7 @@
 .container {
     width: 720px;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
 }
 
 .section-container {
@@ -55,8 +57,44 @@
     height: 60px;
 }
 
+midi-player {
+    display: block;
+}
+
+midi-player::part(control-panel) {
+    border-radius: 10px 10px 10px 10px;
+    padding: 0;
+    margin: 0;
+}
+
 #midiVisualizer {
     width: 100%;
+}
+
+midi-visualizer .piano-roll-visualizer {
+    margin: 4px;
+    margin-top: 0;
+    overflow: auto;
+}
+
+midi-visualizer svg rect.note {
+    opacity: 0.5;
+}
+
+midi-visualizer svg rect.note[data-instrument="0"]{
+    fill: #0d6efd;
+}
+
+midi-visualizer svg rect.note[data-instrument="2"]{
+    fill: #d63384;
+}
+
+midi-visualizer svg rect.note[data-is-drum="true"]{
+    fill: grey;
+}
+
+midi-visualizer svg rect.note.active {
+    opacity: 1.0;
 }
 
 #change_points, #arousal_list:empty {
