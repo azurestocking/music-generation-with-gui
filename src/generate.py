@@ -198,10 +198,8 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
             clip_unit = 512
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
-                # Extract the current segment to save
-                segment_tensor = gen_song_tensor[segment_start:i+1]
+                segment_tensor = gen_song_tensor[segment_start:i+1] # extract the current segment to save
                 
-                # Construct the filename based on the naming logic
                 if short_filename:
                     segment_filename = f"{i//clip_unit}"
                 else:
@@ -224,9 +222,9 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 segment_filename += ".mid"
                 segment_path = os.path.join(out_dir, segment_filename)
                 
-                # Save MIDI file using the correct method
+                # save the segment as MIDI
                 midi_data = ind_tensor_to_mid(segment_tensor, maps["idx2tuple"], maps["idx2event"])
-                midi_data.write(segment_path)  # Correct method to save MIDI files
+                midi_data.write(segment_path)
                 
                 if verbose:
                     print(f"Saved MIDI segment to {segment_path}")
@@ -238,7 +236,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
         redo_primers, redo_discrete_conditions, redo_continuous_conditions = [], [], []
 
         """
-        # convert the outputs to MIDI, name, and save them
+        # convert the full-length outputs to MIDI, name, and save them
         for i in range(gen_song_tensor.size(-1)):
             if short_filename:
                 out_file_path = f"{i}"

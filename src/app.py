@@ -82,7 +82,7 @@ def generate_music():
         verbose=verbose
     )
     
-    # Define the output filename
+    # serve the outputs
     list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
     latest_file = max(list_of_files, key=os.path.getctime, default=None)
     if latest_file:
