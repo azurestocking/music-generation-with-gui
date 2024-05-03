@@ -2,7 +2,7 @@
 
 * Python 3.8 (ubuntu 20.04)
 
-* Node.js
+* Node.js 14.21.3
 
 ## Installation
 

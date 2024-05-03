@@ -91,11 +91,16 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
 
     with torch.no_grad():
         i = 0
+        segment_start = 0
+
         while i < gen_len:
             i += 1
+
+            # print the remaining steps to complete the generation
             if verbose:
                 print(gen_len - i, end=" ", flush=True)
 
+            # prepare and trim the inputs to prevent excessive memory usage and to focus on recent context for generation
             gen_song_tensor = torch.cat((gen_song_tensor, gen_inds), 0)
 
             input_ = gen_song_tensor
@@ -106,28 +111,28 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 # concat with conditions
                 input_ = torch.cat((discrete_conditions_tensor, input_), 0)
 
-            # INTERPOLATED CONDITIONS
+            # INTERPOLATED CONDITIONS: 
+            # extract valence and arousal values for the current timestep for dynamic or time-varying conditions
             if varying_condition is not None:
                 valences = varying_condition[0][:, i-1]
                 arousals = varying_condition[1][:, i-1]
                 conditions_tensor = torch.cat([valences[:, None], arousals[:, None]], dim=-1)
 
-            # Run model
+            # run model
             with torch.cuda.amp.autocast(enabled=amp):
                 input_ = input_.t()
                 output = model(input_, conditions_tensor)
                 output = output.permute((1, 0, 2))
 
             # Process output, get predicted token
-            output = output[-1, :, :]     # Select last timestep
-            output[output != output] = 0    # zeroing nans
+            output = output[-1, :, :]     # select the last timestep's output to predict for the next token based on all previous inputs
+            output[output != output] = 0    # replaces any NaN values in the output with zeros to avoid computational errors
             
             if torch.all(output == 0) and verbose:
-                # if everything becomes zero
                 print("All predictions were NaN during generation")
                 output = torch.ones(output.shape).to(device)
 
-            # exclude certain symbols
+            # exclude specific symbols by setting their logits to negative infinity, removing them from consideration during sampling
             for symbol_exclude in exclude_symbols:
                 try:
                     idx_exclude = maps["tuple2idx"][symbol_exclude]
@@ -135,6 +140,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 except:
                     pass
             
+            # select and apply temperature based on the type of event being generated to control the randomness of sampling
             effective_temps = []
             for j in range(batch_size):
                 gen_idx = gen_inds[0, j].item()
@@ -143,15 +149,16 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 if isinstance(gen_tuple, tuple):
                     gen_event = maps["idx2event"][gen_tuple[0]]
                     if "TIMESHIFT" in gen_event:
-                        # switch from rest temperature to note temperature
-                        effective_temp = temperatures[0]
+                        effective_temp = temperatures[0] # switch from rest temperature to note temperature
                 effective_temps.append(effective_temp)
 
             temp_tensor = torch.Tensor([effective_temps]).to(device)
 
+            # SAMPLING:
+            # apply softmax to normalize the logits
             output = F.log_softmax(output, dim=-1)
 
-            # Add repeat penalty to temperature
+            # adjust by adding repeat penalty according to temperature
             if penalty_coeff > 0:
                 repeat_counts_array = torch.Tensor(repeat_counts).to(device)
                 temp_multiplier = torch.maximum(torch.zeros_like(repeat_counts_array, device=device), 
@@ -159,17 +166,16 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 repeat_penalties = temp_multiplier * temp_tensor
                 temp_tensor += repeat_penalties
 
-            # Apply temperature
             output /= temp_tensor.t()
             
-            # top-k
+            # enforce top-k constraint to refine the choice set
             if top_k <= 0 or top_k > output.size(-1): 
                 top_k_eff = output.size(-1)
             else:
                 top_k_eff = top_k
             output, top_inds = torch.topk(output, top_k_eff)
 
-            # top-p
+            # enforce top-p constraint to refine the choice set
             if top_p > 0 and top_p < 1:
                 cumulative_probs = torch.cumsum(F.softmax(output, dim=-1), dim=-1)
                 remove_inds = cumulative_probs > top_p
@@ -177,21 +183,62 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 output[remove_inds] = -float("inf")
 
             output = F.softmax(output, dim=-1)
-        
-            # Sample from probabilities
+
+            # sample from the resulting distribution to determine the next set of tokens
             inds_sampled = torch.multinomial(output, 1, replacement=True)
             gen_inds = top_inds.gather(1, inds_sampled).t()
 
-            # Update repeat counts
+            # update repeat counts based on the number of available choices to discourage repetitive outputs by adjusting the sampling temperature dynamically
             num_choices = torch.sum((output > 0).int(), -1)
             for j in range(batch_size):
                 if num_choices[j] <= 2: repeat_counts[j] += 1
                 else: repeat_counts[j] = repeat_counts[j] // 2
 
-        # Convert to midi and save
+            # save every specific timesteps or at the final step
+            clip_unit = 512
 
+            if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
+                # Extract the current segment to save
+                segment_tensor = gen_song_tensor[segment_start:i+1]
+                
+                # Construct the filename based on the naming logic
+                if short_filename:
+                    segment_filename = f"{i//clip_unit}"
+                else:
+                    if step is None:
+                        now = datetime.datetime.now()
+                        segment_filename = now.strftime("%Y_%m_%d_%H_%M_%S")
+                    else:
+                        segment_filename = step
+
+                    segment_filename += f"_{i//clip_unit}"
+
+                if seed > 0:
+                    segment_filename += f"_s{seed}"
+
+                if continuous_conditions is not None:
+                    condition = continuous_conditions[segment_start // clip_unit, :].tolist()
+                    condition_str = [str(round(c, 2)).replace(".", "") for c in condition]
+                    segment_filename += f"_V{condition_str[0]}_A{condition_str[1]}"
+
+                segment_filename += ".mid"
+                segment_path = os.path.join(out_dir, segment_filename)
+                
+                # Save MIDI file using the correct method
+                midi_data = ind_tensor_to_mid(segment_tensor, maps["idx2tuple"], maps["idx2event"])
+                midi_data.write(segment_path)  # Correct method to save MIDI files
+                
+                if verbose:
+                    print(f"Saved MIDI segment to {segment_path}")
+                    
+                segment_start = i + 1
+
+        # OUTPUT HANDLING AND SAVING:
         # If there are less than n instruments, repeat generation for specific condition
         redo_primers, redo_discrete_conditions, redo_continuous_conditions = [], [], []
+
+        """
+        # convert the outputs to MIDI, name, and save them
         for i in range(gen_song_tensor.size(-1)):
             if short_filename:
                 out_file_path = f"{i}"
@@ -246,6 +293,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                     redo_discrete_conditions = None
                     redo_continuous_conditions.append(continuous_conditions[i, :].tolist())
                     redo_primers = primers
+        """
 
     return redo_primers, redo_discrete_conditions, redo_continuous_conditions
 
@@ -261,7 +309,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_dir', type=str, help='Directory with model', required=True)
     parser.add_argument('--no_cuda', action='store_true', help="Use CPU")
     parser.add_argument('--num_runs', type=int, help='Number of runs', default=1)
-    parser.add_argument('--gen_len', type=int, help='Max generation len', default=4096)
+    parser.add_argument('--gen_len', type=int, help='Max generation len', default=2048)
     parser.add_argument('--max_input_len', type=int, help='Max input len', default=1216)
     parser.add_argument('--temp', type=float, nargs='+', help='Generation temperature', default=[1.2, 1.2])
     parser.add_argument('--topk', type=int, help='Top-k sampling', default=-1)
