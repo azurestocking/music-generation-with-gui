@@ -1,125 +1,32 @@
-let arousalValues = [];
-let changePoints = [];
-
-let lastPosition = 0;
-let savedPosition = [];
-let isStartingValueSet = false;
+const socket = io();
 
 window.onload = function() {
-    setupSlider();
-    document.getElementById('valueSetterBtn').addEventListener('click', toggleValueSetter);
     setupModal();
 };
 
-function setupSlider() {
-    const slider = document.getElementById('mainSlider');
-    slider.addEventListener('input', function() {
-        // Prevent slider from moving backwards
-        if (parseInt(slider.value, 10) <= lastPosition) {
-            slider.value = lastPosition;
+function updateProgress() {
+    let progress = 0;
+    const interval = setInterval(() => {
+        if(progress < 100){
+            progress += 10; // 假设每次更新增加10%
+            document.getElementById('loading_progress_bar').style.width = progress + '%';
+            document.getElementById('loading_progress_bar').ariaValueNow = progress;
         } else {
-            collapseValueSetter();
+            clearInterval(interval);
         }
-
-        // Check if the user moves the slider from position 0 without specifying any value
-        if (slider.value !== '0' && !isStartingValueSet) {
-            showModal("Please set an arousal value for position 0 before moving the slider.");
-            slider.value = '0';
-        }
-
-        console.log("All backdrops in DOM:", document.querySelectorAll('.modal-backdrop'));
-    });
-}
-
-function toggleValueSetter() {
-    const valueSetter = document.getElementById('valueSetter');
-    new bootstrap.Collapse(valueSetter, {toggle: true}).toggle();
-}
-
-function collapseValueSetter() {
-    const valueSetter = document.getElementById('valueSetter');
-    if (new bootstrap.Collapse(valueSetter, {toggle: false})._isShown()) {
-        new bootstrap.Collapse(valueSetter).hide();
-    }
+    }, 300); // 假设每300ms更新一次
 }
 
 function appendArousal() {
-    const slider = document.getElementById('mainSlider');
-    const position = slider.value;
-
-    // Check if any value has already been specified for this position
-    if (savedPosition.includes(position)) {
-        showModal("Arousal value for this position has already been set. Please choose a different position.");
-        return;
-    }
-
-    // Mark starting values specifically
-    if (position === '0') {
-        isStartingValueSet = true;
-    }
-
-    // Add this position to the existing position list with specified values
-    savedPosition.push(position);
-    lastPosition = parseInt(position, 10);
-    slider.value = lastPosition;
-    changePoints = [...savedPosition];
-
+    document.getElementById('loading_spinner').style.display = 'block';
     // Retrieve the values specified by users from the range sliders
     const value1 = parseFloat(document.getElementById('slider1').value);
     const value2 = parseFloat(document.getElementById('slider2').value);
     const value3 = parseFloat(document.getElementById('slider3').value);
     const average = (value1 + value2 + value3) / 3;
-    arousalValues.push(average.toFixed(2));
 
-    // Display the values specified by users
-    updateIndicators();
-}
-
-function updateIndicators() {
-    const arousalListContainer = document.getElementById('arousal_list');
-
-    arousalListContainer.innerHTML = '';
-
-    changePoints.forEach((point, index) => {
-        const arousalValueIndicator = document.createElement('div');
-        arousalValueIndicator.className = 'indicator';
-        arousalValueIndicator.style.left = (point / 3072 * 100) + '%';
-        arousalValueIndicator.innerText = arousalValues[index];
-        arousalListContainer.appendChild(arousalValueIndicator);
-    });
-}
-
-function submitForm() {
-    collapseValueSetter();
-    showModal('Values submitted successfully.');
-
-    const spinner = document.getElementById('loadingSpinner');
-    spinner.style.display = 'block';
-
-    fetch('/generate', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            change_points: changePoints,
-            arousal_values: arousalValues
-        })
-    }).then(response => response.json())
-    .then(data => {
-        spinner.style.display = 'none';
-        showModal(data.message);
-
-        if (data.midi_url) {
-            const player = document.getElementById('midiPlayer');
-            player.src = data.midi_url;
-            player.reload();
-        }
-    }).catch(error => {
-        console.error('Error:', error);
-        spinner.style.display = 'none';
-        showModal('Failed to generate music, please try again.');
-    });
+    // Emit the averaged arousal value immediately
+    socket.emit('arousal_update', { arousalValue: average.toFixed(2) });
 }
 
 function setupModal() {
@@ -140,6 +47,25 @@ function setupModal() {
             modalElement.removeEventListener('hidden.bs.modal', onModalHidden);
         });
     }
+}
+
+// 监听来自后端的 'new_midi' 事件
+socket.on('new_midi', function(data) {
+    document.getElementById('loading_spinner').style.display = 'none';
+    console.log("Received new MIDI file:", data.filename);
+    // 使用接收到的文件名从后端加载 MIDI 文件
+    fetchAndLoadMidiFile(data.filename);
+});
+
+// Set up Socket.IO client
+// 假设从后端接收到的 filename 已正确传递到此函数
+function fetchAndLoadMidiFile(filename) {
+    const midiPlayer = document.getElementById('midiPlayer');
+    const midiVisualizer = document.getElementById('midiVisualizer');
+    const midiFileUrl = `/get_midi/${filename}`; // 假设你的服务器能够通过这个URL提供MIDI文件
+    console.log(midiFileUrl);
+    midiPlayer.src = midiFileUrl;
+    midiVisualizer.src = midiFileUrl;
 }
 
 function reloadPage() {

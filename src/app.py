@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, render_template, send_file
+from flask_socketio import SocketIO, emit
 import torch
 import numpy as np
 import os
@@ -8,6 +9,7 @@ from models.build_model import build_model
 from generate import generate
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # Setup paths and device configuration
 model_directory = "../output/continuous_concat"
@@ -32,6 +34,65 @@ model.eval()
 def home():
     return render_template('index.html')
 
+current_arousal = 0.0
+
+@socketio.on('arousal_update')
+def handle_arousal_update(message):
+    global current_arousal
+    current_arousal = float(message['arousalValue'])
+    print(f"Received new arousal value: {current_arousal}")
+
+    # Acknowledge the receipt and processing of the arousal value
+    emit('arousal_received', {'status': 'success', 'arousalValue': current_arousal})
+    
+    # Trigger any real-time processing
+    process_arousal_value(current_arousal)
+
+def process_arousal_value(arousal_value):
+    # Implement processing logic here
+    print(f"Processing arousal value: {arousal_value}")
+    gen_len = 1024
+    arousal = np.zeros(gen_len)
+    valence = np.zeros(gen_len) 
+    arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
+    valence_tensor = torch.tensor(valence, dtype=torch.float32).view(1, -1).to(device)
+    varying_condition = [valence_tensor, arousal_tensor]
+    
+    # Call the generate function
+    temperatures = [1.2, 1.2]
+    penalty_coeff = 0.5
+    min_n_instruments = 2
+    verbose = True
+
+    generate(
+        model=model,
+        maps=maps,
+        device=device,
+        out_dir=output_directory,
+        conditioning="continuous_concat",
+        varying_condition=varying_condition,
+        gen_len=gen_len,
+        temperatures=temperatures,
+        penalty_coeff=penalty_coeff,
+        min_n_instruments=min_n_instruments,
+        verbose=verbose
+    )
+    
+    # Define the output filename
+    list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
+    latest_file = max(list_of_files, key=os.path.getctime, default=None)
+    if latest_file:
+        filename = os.path.basename(latest_file)
+        emit('new_midi', {'filename': filename})
+        return jsonify({"message": "File generated successfully.", "download_url": f"/download/{filename}"})
+    else:
+        return jsonify({"message": "No file generated."}), 404
+
+@app.route('/get_midi/<filename>', methods=['GET'])
+def get_midi(filename):
+    return send_file(os.path.join(output_directory, f'{filename}'), mimetype='audio/midi')
+
+"""
 @app.route('/generate', methods=['POST'])
 def generate_music():
     data = request.get_json()
@@ -82,7 +143,7 @@ def generate_music():
         verbose=verbose
     )
     
-    # serve the outputs
+    # Define the output filename
     list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
     latest_file = max(list_of_files, key=os.path.getctime, default=None)
     if latest_file:
@@ -98,6 +159,7 @@ def serve_midi(filename):
         return send_file(file_path, mimetype='audio/midi')
     except Exception as e:
         return str(e), 404
+"""
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)
