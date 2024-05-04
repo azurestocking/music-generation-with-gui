@@ -49,6 +49,10 @@ function setupModal() {
     }
 }
 
+function startGeneration() {
+    socket.emit('start_generation', { message: 'Start the generation process' });
+}
+
 // 监听来自后端的 'new_midi' 事件
 socket.on('new_midi', function(data) {
     document.getElementById('loading_spinner').style.display = 'none';

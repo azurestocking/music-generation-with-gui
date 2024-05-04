@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_socketio import SocketIO, emit
+import threading
 import torch
 import numpy as np
 import os
@@ -30,40 +31,22 @@ model.load_state_dict(torch.load(model_path, map_location=device))
 model = model.to(device)
 model.eval()
 
+# Shared variable for conditions
+condition_lock = threading.Lock()
+gen_len = 3072
+arousal = np.zeros(gen_len)
+valence = np.zeros(gen_len) 
+arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
+valence_tensor = torch.tensor(valence, dtype=torch.float32).view(1, -1).to(device)
+varying_condition = [valence_tensor, arousal_tensor]
+
+gen_thread = None
+
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-current_arousal = 0.0
-
-@socketio.on('arousal_update')
-def handle_arousal_update(message):
-    global current_arousal
-    current_arousal = float(message['arousalValue'])
-    print(f"Received new arousal value: {current_arousal}")
-
-    # Acknowledge the receipt and processing of the arousal value
-    emit('arousal_received', {'status': 'success', 'arousalValue': current_arousal})
-    
-    # Trigger any real-time processing
-    process_arousal_value(current_arousal)
-
-def process_arousal_value(arousal_value):
-    # Implement processing logic here
-    print(f"Processing arousal value: {arousal_value}")
-    gen_len = 1024
-    arousal = np.zeros(gen_len)
-    valence = np.zeros(gen_len) 
-    arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
-    valence_tensor = torch.tensor(valence, dtype=torch.float32).view(1, -1).to(device)
-    varying_condition = [valence_tensor, arousal_tensor]
-    
-    # Call the generate function
-    temperatures = [1.2, 1.2]
-    penalty_coeff = 0.5
-    min_n_instruments = 2
-    verbose = True
-
+def generate_continuously():
     generate(
         model=model,
         maps=maps,
@@ -72,94 +55,34 @@ def process_arousal_value(arousal_value):
         conditioning="continuous_concat",
         varying_condition=varying_condition,
         gen_len=gen_len,
-        temperatures=temperatures,
-        penalty_coeff=penalty_coeff,
-        min_n_instruments=min_n_instruments,
-        verbose=verbose
+        temperatures=[1.2, 1.2],
+        penalty_coeff=0.5,
+        min_n_instruments=2,
+        verbose=True
     )
-    
-    # Define the output filename
-    list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
-    latest_file = max(list_of_files, key=os.path.getctime, default=None)
-    if latest_file:
-        filename = os.path.basename(latest_file)
-        emit('new_midi', {'filename': filename})
-        return jsonify({"message": "File generated successfully.", "download_url": f"/download/{filename}"})
-    else:
-        return jsonify({"message": "No file generated."}), 404
+
+@socketio.on('arousal_update')
+def update_condition(data):
+    current_arousal = float(data['arousalValue'])
+    current_valence = 0.0
+    print(f"Received new arousal value {current_arousal}", end=" ")
+    with condition_lock:
+        arousal_tensor.fill_(current_arousal)
+        valence_tensor.fill_(current_valence)
+
+@socketio.on('start_generation')
+def start_generation(data):
+    global gen_thread
+    print('Received request:', data['message'], end=" ")
+    with condition_lock:
+        if gen_thread is None or not gen_thread.is_alive():
+            gen_thread = threading.Thread(target=generate_continuously)
+            gen_thread.daemon = True
+            gen_thread.start()
 
 @app.route('/get_midi/<filename>', methods=['GET'])
 def get_midi(filename):
     return send_file(os.path.join(output_directory, f'{filename}'), mimetype='audio/midi')
-
-"""
-@app.route('/generate', methods=['POST'])
-def generate_music():
-    data = request.get_json()
-    change_points = list(map(int, data['change_points']))
-    change_points.pop(0)
-    arousal_values = list(map(float, data['arousal_values']))
-    gen_len = 3072
-    print("Change points:", change_points)
-    print("Arousal values:", arousal_values)
-    
-    # Initialize arousal and valence arrays
-    arousal = np.zeros(gen_len)
-    valence = np.zeros(gen_len) 
-    arousal[:change_points[0]] = arousal_values[0]
-    
-    # Set up interpolation based on user inputs
-    for i, point in enumerate(change_points):
-        start_index = point
-        end_index = change_points[i + 1] if i + 1 < len(change_points) else gen_len
-        end_val = arousal_values[i + 1]
-        print(f"Interpolation starts at index {start_index} from value {arousal[start_index - 1]}")
-        num_steps = min(64, end_index - start_index)
-        arousal[start_index:start_index + num_steps] = np.linspace(arousal[start_index - 1], end_val, num_steps)
-        arousal[start_index + num_steps:end_index] = end_val
-        print(f"Interpolation finishes at index {start_index + num_steps} with value {end_val}")
-
-    arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
-    valence_tensor = torch.tensor(valence, dtype=torch.float32).view(1, -1).to(device)
-    varying_condition = [valence_tensor, arousal_tensor]
-    
-    # Call the generate function
-    temperatures = [1.2, 1.2]
-    penalty_coeff = 0.5
-    min_n_instruments = 2
-    verbose = True
-
-    generate(
-        model=model,
-        maps=maps,
-        device=device,
-        out_dir=output_directory,
-        conditioning="continuous_concat",
-        varying_condition=varying_condition,
-        gen_len=gen_len,
-        temperatures=temperatures,
-        penalty_coeff=penalty_coeff,
-        min_n_instruments=min_n_instruments,
-        verbose=verbose
-    )
-    
-    # Define the output filename
-    list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
-    latest_file = max(list_of_files, key=os.path.getctime, default=None)
-    if latest_file:
-        filename = os.path.basename(latest_file)
-        return jsonify({"message": "File generated successfully.", "midi_url": f"/midi/{filename}"})
-    else:
-        return jsonify({"message": "No file generated."}), 404
-
-@app.route('/midi/<filename>')
-def serve_midi(filename):
-    try:
-        file_path = os.path.join(output_directory, filename)
-        return send_file(file_path, mimetype='audio/midi')
-    except Exception as e:
-        return str(e), 404
-"""
 
 if __name__ == '__main__':
     socketio.run(app, debug=True)

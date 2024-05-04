@@ -98,7 +98,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
 
             # print the remaining steps to complete the generation
             if verbose:
-                print(gen_len - i, end=" ", flush=True)
+                print(gen_len - i, end="", flush=True)
 
             # prepare and trim the inputs to prevent excessive memory usage and to focus on recent context for generation
             gen_song_tensor = torch.cat((gen_song_tensor, gen_inds), 0)
@@ -112,11 +112,15 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                 input_ = torch.cat((discrete_conditions_tensor, input_), 0)
 
             # INTERPOLATED CONDITIONS: 
-            # extract valence and arousal values for the current timestep for dynamic or time-varying conditions
             if varying_condition is not None:
                 valences = varying_condition[0][:, i-1]
                 arousals = varying_condition[1][:, i-1]
                 conditions_tensor = torch.cat([valences[:, None], arousals[:, None]], dim=-1)
+
+                # Print the current arousal value at each timestep
+                if verbose:
+                    formatted_arousal = f"{arousals.item():.2f}"
+                    print(f"({formatted_arousal})", end=" ")
 
             # run model
             with torch.cuda.amp.autocast(enabled=amp):
@@ -295,9 +299,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
                     redo_continuous_conditions.append(continuous_conditions[i, :].tolist())
                     redo_primers = primers
         
-
     return redo_primers, redo_discrete_conditions, redo_continuous_conditions
-
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
