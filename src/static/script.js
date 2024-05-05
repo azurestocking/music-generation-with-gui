@@ -6,8 +6,8 @@ window.onload = function() {
     document.getElementById('startButton').classList.remove('disabled');
     document.getElementById('startButton').disabled = false;
   
-    document.getElementById('setButton').classList.remove('disabled');
-    document.getElementById('setButton').disabled = false;
+    document.getElementById('setButton').classList.add('disabled');
+    document.getElementById('setButton').disabled = true;
   
     document.getElementById('cancelButton').classList.add('disabled');
     document.getElementById('cancelButton').disabled = true;

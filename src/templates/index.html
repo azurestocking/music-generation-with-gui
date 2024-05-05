@@ -16,27 +16,44 @@
             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
         </section>
 
-        <section id="section-2">
+        <section id="section-2" style="margin-bottom: 1rem;">
             <div class="button-container">
-                <button id="startButton" class="btn btn-primary" type="button" onclick="startGeneration()">Start</button>
-                <button id="setButton" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#valueSetter" type="button">Tune</button>
-                <button id="cancelButton" class="btn btn-primary" type="button" onclick="cancelGeneration()">Cancel</button>
-                <button id="reloadButton" class="btn btn-primary" type="button" onclick="reloadPage()">Reload</button>
+                <button id="startButton" class="btn btn-outline-primary" type="button" onclick="startGeneration()">Start</button>
+                <button id="setButton" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#valueSetter" type="button">Tune</button>
+                <button id="cancelButton" class="btn btn-outline-primary" type="button" onclick="cancelGeneration()">Cancel</button>
+                <button id="reloadButton" class="btn btn-outline-primary" type="button" onclick="reloadPage()">Reload</button>
             </div>
         </section>
-        <p></p>
+        
         <section id="section-3">
             <div class="setter-container">
                 <div class="collapse" id="valueSetter">
                     <div class="card text-center" style="margin-bottom: 1rem;">
                         <div class="card-body">
-                            <div>Camera 1</div>
-                            <input type="range" class="form-range" id="slider1" min="-1.0" max="1.0" step="1.0" value="0">
-                            <div>Camera 2</div>
-                            <input type="range" class="form-range" id="slider2" min="-1.0" max="1.0" step="1.0" value="0">
-                            <div>Camera 3</div>
-                            <input type="range" class="form-range" id="slider3" min="-1.0" max="1.0" step="1.0" value="0">
-                            <button class="btn btn-primary" type="button" onclick="appendArousal()">Submit</button>
+                            <div class="camera">
+                                <div class="identifier">
+                                    <div><b>CAMERA 1:</b></div>
+                                    <span id="slider1Value">Medium</span>
+                                </div>
+                                <input type="range" class="form-range" id="slider1" min="-1.0" max="1.0" step="1.0" value="0">
+                            </div>
+                            <div class="camera">
+                                <div class="identifier">
+                                    <div><b>CAMERA 2:</b></div>
+                                    <span id="slider2Value">Medium</span>
+                                </div>
+                                <input type="range" class="form-range" id="slider2" min="-1.0" max="1.0" step="1.0" value="0">
+                            </div>
+                            <div class="camera">
+                                <div class="identifier">
+                                    <div><b>CAMERA 3:</b></div>
+                                    <span id="slider3Value">Medium</span>
+                                </div>
+                                <input type="range" class="form-range" id="slider3" min="-1.0" max="1.0" step="1.0" value="0">
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-primary" type="button" onclick="appendArousal()">Submit</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -53,6 +70,8 @@
             </div>
         </section>
     </div>
+
+    <p style="text-align: center;">Footer</p>
     
     <div class="modal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -68,6 +87,27 @@
         </div>
     </div>
     
+    <script>
+        function updateSliderValue(sliderId, displayId) {
+            var slider = document.getElementById(sliderId);
+            var displayElement = document.getElementById(displayId);
+            slider.addEventListener('input', function() {
+                var value = parseInt(slider.value, 10);
+                var label = "Medium";
+                if (value === -1) {
+                    label = "Low";
+                } else if (value === 0) {
+                    label = "Medium";
+                } else if (value === 1) {
+                    label = "High";
+                }
+                displayElement.textContent = label;
+            });
+        }
+        updateSliderValue('slider1', 'slider1Value');
+        updateSliderValue('slider2', 'slider2Value');
+        updateSliderValue('slider3', 'slider3Value');
+    </script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
