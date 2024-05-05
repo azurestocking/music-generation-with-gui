@@ -2,6 +2,18 @@ const socket = io();
 
 window.onload = function() {
     setupModal();
+
+    document.getElementById('startButton').classList.remove('disabled');
+    document.getElementById('startButton').disabled = false;
+  
+    document.getElementById('setButton').classList.remove('disabled');
+    document.getElementById('setButton').disabled = false;
+  
+    document.getElementById('cancelButton').classList.add('disabled');
+    document.getElementById('cancelButton').disabled = true;
+  
+    document.getElementById('reloadButton').classList.add('disabled');
+    document.getElementById('reloadButton').disabled = true;
 };
 
 function updateProgress() {
@@ -49,8 +61,36 @@ function setupModal() {
     }
 }
 
+function cancelGeneration() {
+    socket.emit('stop_generation');
+
+    document.getElementById('startButton').classList.add('disabled');
+    document.getElementById('startButton').disabled = true;
+
+    document.getElementById('setButton').classList.add('disabled');
+    document.getElementById('setButton').disabled = true;
+
+    document.getElementById('cancelButton').classList.add('disabled');
+    document.getElementById('cancelButton').disabled = true;
+
+    document.getElementById('reloadButton').classList.remove('disabled');
+    document.getElementById('reloadButton').disabled = false;
+}
+
 function startGeneration() {
     socket.emit('start_generation', { message: 'Start the generation process' });
+
+    document.getElementById('startButton').classList.add('disabled');
+    document.getElementById('startButton').disabled = true;
+  
+    document.getElementById('setButton').classList.remove('disabled');
+    document.getElementById('setButton').disabled = false;
+  
+    document.getElementById('cancelButton').classList.remove('disabled');
+    document.getElementById('cancelButton').disabled = false;
+  
+    document.getElementById('reloadButton').classList.add('disabled');
+    document.getElementById('reloadButton').disabled = true;
 }
 
 // 监听来自后端的 'new_midi' 事件
@@ -67,9 +107,28 @@ function fetchAndLoadMidiFile(filename) {
     const midiPlayer = document.getElementById('midiPlayer');
     const midiVisualizer = document.getElementById('midiVisualizer');
     const midiFileUrl = `/get_midi/${filename}`; // 假设你的服务器能够通过这个URL提供MIDI文件
+
     console.log(midiFileUrl);
     midiPlayer.src = midiFileUrl;
     midiVisualizer.src = midiFileUrl;
+
+    const valueSetter = document.getElementById('valueSetter');
+    const bsCollapse = new bootstrap.Collapse(valueSetter, {
+        toggle: false
+    });
+    bsCollapse.hide();
+
+    document.getElementById('startButton').classList.add('disabled');
+    document.getElementById('startButton').disabled = true;
+  
+    document.getElementById('setButton').classList.add('disabled');
+    document.getElementById('setButton').disabled = true;
+  
+    document.getElementById('cancelButton').classList.add('disabled');
+    document.getElementById('cancelButton').disabled = true;
+  
+    document.getElementById('reloadButton').classList.remove('disabled');
+    document.getElementById('reloadButton').disabled = true;
 }
 
 function reloadPage() {

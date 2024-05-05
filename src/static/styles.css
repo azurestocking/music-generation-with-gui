@@ -1,20 +1,77 @@
+:root {
+    --green: #9DE5B8;
+    --blue: #23465A;
+    --cream: #DEF2F1;
+}  
+
+body {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 16px;
+    color: var(--blue);
+    background: var(--cream);
+}
+
+h1 {
+    font-size: 30px;
+    text-align: center;
+}
+
+.btn-primary {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: var(--blue);
+    --bs-btn-border-color: var(--blue);
+    --bs-btn-hover-color: var(--blue);
+    --bs-btn-hover-bg: var(--green);
+    --bs-btn-hover-border-color: var(--green);
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: var(--blue);
+    --bs-btn-active-bg: var(--green);
+    --bs-btn-active-border-color: var(--green);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: var(--blue);
+    --bs-btn-disabled-border-color: var(--blue);
+}
+
 .container {
-    width: 720px;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    background: white;
+    max-width: 800px;
+    border: 10px solid var(--blue);
+    position: relative;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
 }
 
-.section-container {
-    border: 1px solid LightGray;
-    padding: 1rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
+.container:after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -30px;
+    left: -10px;
+    width: calc(100% + 20px);
+    margin: auto;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-top: 20px solid var(--blue);
 }
 
-.center-container {
+.button-container, .setter-container {
     display: flex; 
-    flex-direction: column; 
     align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.visualizer-container {
+    border: 2px solid var(--blue);
+    background-color: var(--cream);
+    height: 300px;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
 }
 
 .spinner-grow {
@@ -25,50 +82,44 @@
 }
 
 .card {
-    width: 400px;
+    color: var(--blue);
+    background-color: transparent;
+    border: 2px solid var(--blue);
 }
 
 .card-body button {
     margin-top: 1rem;
 }
 
-#valueSetterBtn {
-    --bs-btn-padding-x: 0rem;
-    --bs-btn-padding-y: 0rem;
-    --bs-btn-font-size: 0.7rem;
-    --bs-btn-color: black;
-    --bs-btn-bg: none;
-    --bs-btn-border-color: none;
-    --bs-btn-hover-color: black;
-    --bs-btn-hover-bg: none;
-    --bs-btn-hover-border-color: none;
-    --bs-btn-focus-shadow-rgb: 49, 132, 253;
-    --bs-btn-active-color: black;
-    --bs-btn-active-bg: none;
-    --bs-btn-active-border-color: none;
-    --bs-btn-active-shadow: none;
-    --bs-btn-disabled-color: black;
-    --bs-btn-disabled-bg: none;
-    --bs-btn-disabled-border-color: none;
-}
-
-#midiPlayer {
-    width: 100%;
-    height: 60px;
-}
-
 midi-player {
+    width: inherit;
     display: block;
+    margin: 0px;
 }
 
 midi-player::part(control-panel) {
-    border-radius: 10px 10px 10px 10px;
-    padding: 0;
-    margin: 0;
+    background: var(--green);
+    border: 2px solid var(--blue);
+    border-radius: 10px 10px 0 0;
+}
+
+midi-player::part(play-button) {
+    color: var(--blue);
+    border: 2px solid var(--blue);
+    background-color: var(--cream);
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+midi-player::part(time) {
+    color: var(--blue);
+    font-size: 12px;
+    font-family: monospace;
 }
 
 #midiVisualizer {
     width: 100%;
+    height: inherit;
 }
 
 midi-visualizer .piano-roll-visualizer {
@@ -78,23 +129,12 @@ midi-visualizer .piano-roll-visualizer {
 }
 
 midi-visualizer svg rect.note {
-    fill: black;
-}
-
-midi-visualizer svg rect.note[data-instrument="0"]{
-    fill: black;
-}
-
-midi-visualizer svg rect.note[data-instrument="2"]{
-    fill: black;
-}
-
-midi-visualizer svg rect.note[data-is-drum="true"]{
-    fill: grey;
+    fill: var(--blue);
 }
 
 midi-visualizer svg rect.note.active {
-    fill: #0d6efd;
+    fill: var(--green);
+    stroke: var(--blue);
 }
 
 #change_points, #arousal_list:empty {
