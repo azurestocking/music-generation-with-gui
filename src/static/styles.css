@@ -21,6 +21,10 @@ h1 {
     text-align: center;
 }
 
+.text-primary {
+    color: var(--green) !important;
+}
+
 .btn-outline-primary {
     --bs-btn-border-width: 2px;
     --bs-btn-color: #fff;
@@ -74,18 +78,25 @@ h1 {
 }
 
 .visualizer-container {
-    border: 2px solid var(--blue);
-    background-color: white;
+    position: relative;
     height: 300px;
+    width: 100%;
+    border: 2px solid var(--blue);
     border-top: none;
     border-radius: 0 0 0.375rem 0.375rem;
 }
 
-.spinner-grow {
-    margin-top: 1rem;
+.spinner-border {
+    position: absolute;
+    top: 50%;
+    left: 50%;
     width: 2rem;
     height: 2rem;
-    display: none;
+    display: none; 
+}
+
+.spinner-border.show {
+    display: block;
 }
 
 .form-range {

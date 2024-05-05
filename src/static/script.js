@@ -30,7 +30,8 @@ function updateProgress() {
 }
 
 function appendArousal() {
-    document.getElementById('loading_spinner').style.display = 'block';
+    document.getElementById('loading_spinner').classList.add('show');
+
     // Retrieve the values specified by users from the range sliders
     const value1 = parseFloat(document.getElementById('slider1').value);
     const value2 = parseFloat(document.getElementById('slider2').value);
@@ -64,6 +65,14 @@ function setupModal() {
 function cancelGeneration() {
     socket.emit('stop_generation');
 
+    document.getElementById('loading_spinner').classList.remove('show');
+
+    const valueSetter = document.getElementById('valueSetter');
+    const bsCollapse = new bootstrap.Collapse(valueSetter, {
+        toggle: false
+    });
+    bsCollapse.hide();
+
     document.getElementById('startButton').classList.add('disabled');
     document.getElementById('startButton').disabled = true;
 
@@ -79,6 +88,8 @@ function cancelGeneration() {
 
 function startGeneration() {
     socket.emit('start_generation', { message: 'Start the generation process' });
+
+    document.getElementById('loading_spinner').classList.add('show');
 
     document.getElementById('startButton').classList.add('disabled');
     document.getElementById('startButton').disabled = true;

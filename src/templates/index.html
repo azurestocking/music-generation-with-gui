@@ -20,7 +20,7 @@
             <div class="button-container">
                 <button id="startButton" class="btn btn-outline-primary" type="button" onclick="startGeneration()">Start</button>
                 <button id="setButton" class="btn btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#valueSetter" type="button">Tune</button>
-                <button id="cancelButton" class="btn btn-outline-primary" type="button" onclick="cancelGeneration()">Cancel</button>
+                <button id="cancelButton" class="btn btn-outline-primary" type="button" onclick="cancelGeneration()">Stop</button>
                 <button id="reloadButton" class="btn btn-outline-primary" type="button" onclick="reloadPage()">Reload</button>
             </div>
         </section>
@@ -63,7 +63,7 @@
         <section id="section-4">
             <midi-player id="midiPlayer" sound-font visualizer="#midiVisualizer"></midi-player>
             <div class="visualizer-container">
-                <div class="spinner-grow text-primary" role="status" id="loading_spinner" style="display: none">
+                <div class="spinner-border text-primary" role="status" id="loading_spinner">
                     <span class="visually-hidden">Loading...</span>
                 </div>
                 <midi-visualizer type="piano-roll" id="midiVisualizer"></midi-visualizer>
@@ -104,6 +104,7 @@
                 displayElement.textContent = label;
             });
         }
+        
         updateSliderValue('slider1', 'slider1Value');
         updateSliderValue('slider2', 'slider2Value');
         updateSliderValue('slider3', 'slider3Value');

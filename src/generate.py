@@ -17,12 +17,7 @@ def chunks(lst, n):
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
 
-def generate(model, maps, device, out_dir, conditioning, short_filename=False,
-                penalty_coeff=0.5, discrete_conditions=None, continuous_conditions=None,
-                    max_input_len=1024, amp=True, step=None, 
-                    gen_len=2048, temperatures=[1.2,1.2], top_k=-1, 
-                    top_p=0.7, debug=False, varying_condition=None, seed=-1,
-                    verbose=False, primers=[["<START>"]], min_n_instruments=2):
+def generate(model, maps, device, out_dir, conditioning, stop_event, short_filename=False, penalty_coeff=0.5, discrete_conditions=None, continuous_conditions=None, max_input_len=1024, amp=True, step=None, gen_len=2048, temperatures=[1.2,1.2], top_k=-1, top_p=0.7, debug=False, varying_condition=None, seed=-1, verbose=False, primers=[["<START>"]], min_n_instruments=2):
 
     if not debug:
         os.makedirs(out_dir, exist_ok=True)
@@ -94,6 +89,10 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
         # segment_start = 0
 
         while i < gen_len:
+            if stop_event.is_set():
+                print("Generation stopped by stop_event.")
+                break
+
             i += 1
 
             # print the remaining steps to complete the generation
@@ -205,7 +204,7 @@ def generate(model, maps, device, out_dir, conditioning, short_filename=False,
             clip_unit = 128
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
-                segment_tensor = gen_song_tensor[segment_start:i+1] # extract the current segment to save
+                segment_tensor = gen_song_tensor[segment_start:i+1]
                 
                 if short_filename:
                     segment_filename = f"{i//clip_unit}"

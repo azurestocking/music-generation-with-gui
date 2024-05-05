@@ -1,10 +1,10 @@
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_socketio import SocketIO, emit
 import threading
+from threading import Event
 import torch
 import numpy as np
 import os
-import datetime
 import glob
 from models.build_model import build_model
 from generate import generate
@@ -41,17 +41,15 @@ valence_tensor = torch.tensor(valence, dtype=torch.float32).view(1, -1).to(devic
 varying_condition = [valence_tensor, arousal_tensor]
 
 gen_thread = None
-should_stop = False
+stop_event = Event()
 
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
 
-# TODO: DEBUG: Program doesn't terminate after "cancel" button is clicked. Server prints only "stop signal received".
 def generate_continuously():
-    global should_stop
     print("Starting generation loop...")
-    while not should_stop:
+    while not stop_event.is_set():
         print("Before calling generate...")
         generate(
             model=model,
@@ -64,14 +62,15 @@ def generate_continuously():
             temperatures=[1.2, 1.2],
             penalty_coeff=0.5,
             min_n_instruments=2,
-            verbose=True
+            verbose=True,
+            stop_event=stop_event
         )
         print("After calling generate...")
-        if should_stop:
+        if stop_event.is_set():
             print("Stop flag detected post generate call, breaking loop...")
             break
     print("Exiting generate_continuously loop.")
-    should_stop = False
+    stop_event.clear()
     print("Generation stopped.")
 
     # TODO: socket emissions called from another thread
@@ -95,8 +94,8 @@ def update_condition(data):
 
 @socketio.on('start_generation')
 def start_generation(data):
-    global gen_thread, should_stop
-    should_stop = False
+    global gen_thread, stop_event
+    stop_event.clear()
     print('Received request:', data['message'], end=" ")
     with condition_lock:
         if gen_thread is None or not gen_thread.is_alive():
@@ -106,8 +105,8 @@ def start_generation(data):
 
 @socketio.on('stop_generation')
 def stop_generation():
-    global should_stop
-    should_stop = True
+    global stop_event
+    stop_event.set()
     print("Stop signal received.")
 
 # TODO: queue the clips generated in reasonable order and serve them for the player
