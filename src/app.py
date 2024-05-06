@@ -33,7 +33,7 @@ model.eval()
 
 # Shared variable for conditions
 condition_lock = threading.Lock()
-gen_len = 3072
+gen_len = 2048
 arousal = np.zeros(gen_len)
 valence = np.zeros(gen_len) 
 arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
@@ -48,30 +48,27 @@ def home():
     return render_template('index.html')
 
 def generate_continuously():
-    print("Starting generation loop...")
-    while not stop_event.is_set():
-        print("Before calling generate...")
-        generate(
-            model=model,
-            maps=maps,
-            device=device,
-            out_dir=output_directory,
-            conditioning="continuous_concat",
-            varying_condition=varying_condition,
-            gen_len=gen_len,
-            temperatures=[1.2, 1.2],
-            penalty_coeff=0.5,
-            min_n_instruments=2,
-            verbose=True,
-            stop_event=stop_event
-        )
-        print("After calling generate...")
-        if stop_event.is_set():
-            print("Stop flag detected post generate call, breaking loop...")
-            break
-    print("Exiting generate_continuously loop.")
-    stop_event.clear()
-    print("Generation stopped.")
+    print("Starting generation...")
+    generate(
+        model=model,
+        maps=maps,
+        device=device,
+        out_dir=output_directory,
+        conditioning="continuous_concat",
+        varying_condition=varying_condition,
+        gen_len=gen_len,
+        temperatures=[1.2, 1.2],
+        penalty_coeff=0.5,
+        min_n_instruments=2,
+        verbose=True,
+        stop_event=stop_event
+    )
+    print("Generation complete.")
+    
+    if not stop_event.is_set():
+        print("Generation finished normally.")
+    else:
+        print("Generation was stopped early.")
 
     # TODO: socket emissions called from another thread
     list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
@@ -95,13 +92,13 @@ def update_condition(data):
 @socketio.on('start_generation')
 def start_generation(data):
     global gen_thread, stop_event
-    stop_event.clear()
-    print('Received request:', data['message'], end=" ")
-    with condition_lock:
-        if gen_thread is None or not gen_thread.is_alive():
-            gen_thread = threading.Thread(target=generate_continuously)
-            gen_thread.daemon = True
-            gen_thread.start()
+    if not gen_thread or not gen_thread.is_alive():
+        stop_event.clear()
+        gen_thread = threading.Thread(target=generate_continuously)
+        gen_thread.start()
+        print("Started generation thread.")
+    else:
+        print("A generation thread is already running.")
 
 @socketio.on('stop_generation')
 def stop_generation():

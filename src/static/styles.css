@@ -78,7 +78,7 @@ h1 {
 }
 
 .visualizer-container {
-    position: relative;
+    position: relative; 
     height: 300px;
     width: 100%;
     border: 2px solid var(--blue);
