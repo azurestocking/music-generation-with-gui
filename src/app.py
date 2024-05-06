@@ -70,12 +70,11 @@ def generate_continuously():
     else:
         print("Generation was stopped early.")
 
-    # TODO: socket emissions called from another thread
     list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
     latest_file = max(list_of_files, key=os.path.getctime, default=None)
     if latest_file:
         filename = os.path.basename(latest_file)
-        emit('new_midi', {'filename': filename})
+        socketio.emit('new_midi', {'filename': filename})
         return jsonify({"message": "File generated successfully.", "download_url": f"/download/{filename}"})
     else:
         return jsonify({"message": "No file generated."}), 404

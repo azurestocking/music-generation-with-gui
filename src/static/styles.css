@@ -79,11 +79,22 @@ h1 {
 
 .visualizer-container {
     position: relative; 
-    height: 300px;
+    height: 330px;
     width: 100%;
     border: 2px solid var(--blue);
     border-top: none;
     border-radius: 0 0 0.375rem 0.375rem;
+}
+
+midi-visualizer .piano-roll-visualizer {
+    margin: 4px;
+    margin-top: 0;
+    overflow: auto;
+    height: 100%;
+}
+
+.piano-roll-visualizer svg {
+    height: 100%;
 }
 
 .spinner-border {

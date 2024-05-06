@@ -139,7 +139,7 @@ function fetchAndLoadMidiFile(filename) {
     document.getElementById('cancelButton').disabled = true;
   
     document.getElementById('reloadButton').classList.remove('disabled');
-    document.getElementById('reloadButton').disabled = true;
+    document.getElementById('reloadButton').disabled = false;
 }
 
 function reloadPage() {

@@ -86,7 +86,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
 
     with torch.no_grad():
         i = 0
-        # segment_start = 0
+        segment_start = 0
 
         while i < gen_len:
             if stop_event.is_set():
@@ -198,9 +198,8 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 else: repeat_counts[j] = repeat_counts[j] // 2
 
             """
-            BREAK A LONG OUTPUT INTO SEVERAL SEGMENTS
-            save every specific timesteps or at the final step
-            
+            # BREAK FULL-LENGTH OUTPUTS INTO SEVERAL SEGMENTS
+            """
             clip_unit = 128
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
@@ -236,13 +235,15 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                     print(f"Saved MIDI segment to {segment_path}")
                     
                 segment_start = i + 1
-            """
 
         # OUTPUT HANDLING AND SAVING:
         # If there are less than n instruments, repeat generation for specific condition
         redo_primers, redo_discrete_conditions, redo_continuous_conditions = [], [], []
 
-        # convert the full-length outputs to MIDI, name, and save them
+        """
+        # SAVE FULL-LENGTH OUTPUTS
+        """
+        """
         for i in range(gen_song_tensor.size(-1)):
             if short_filename:
                 out_file_path = f"{i}"
@@ -297,6 +298,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                     redo_discrete_conditions = None
                     redo_continuous_conditions.append(continuous_conditions[i, :].tolist())
                     redo_primers = primers
+        """
         
     return redo_primers, redo_discrete_conditions, redo_continuous_conditions
 
