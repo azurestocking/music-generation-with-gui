@@ -75,7 +75,7 @@ def generate_continuously():
     if latest_file:
         filename = os.path.basename(latest_file)
         socketio.emit('new_midi', {'filename': filename})
-        return jsonify({"message": "File generated successfully.", "download_url": f"/download/{filename}"})
+        return jsonify({"message": "File generated successfully."})
     else:
         return jsonify({"message": "No file generated."}), 404
 
