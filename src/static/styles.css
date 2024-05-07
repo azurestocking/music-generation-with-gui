@@ -171,12 +171,13 @@ midi-player::part(time) {
 
 #midiVisualizer {
     width: 100%;
-    height: inherit;
+    height: 100%;
 }
 
 midi-visualizer .piano-roll-visualizer {
     margin: 4px;
     margin-top: 0;
+    height: 100%;
     overflow: auto;
 }
 

@@ -48,7 +48,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
             
     # will be used to penalize repeats
     repeat_counts = [0 for _ in range(batch_size)]
-
+    print("Generating...")
     exclude_symbols = [symbol for symbol in maps["tuple2idx"].keys() if symbol[0] == "<"]
 
     # will have generated symbols and indices
@@ -87,7 +87,8 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
     with torch.no_grad():
         i = 0
         segment_start = 0
-
+        # 定义本次生成的mid文件列表
+        mid_files = []
         while i < gen_len:
             if stop_event.is_set():
                 print("Generation stopped by stop_event.")
@@ -200,7 +201,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
             """
             # BREAK FULL-LENGTH OUTPUTS INTO SEVERAL SEGMENTS
             """
-            clip_unit = 128
+            clip_unit = 256
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
                 segment_tensor = gen_song_tensor[segment_start:i+1]
@@ -226,7 +227,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
 
                 segment_filename += ".mid"
                 segment_path = os.path.join(out_dir, segment_filename)
-                
+                mid_files.append(segment_filename)
                 # save the segment as MIDI
                 midi_data = ind_tensor_to_mid(segment_tensor, maps["idx2tuple"], maps["idx2event"])
                 midi_data.write(segment_path)
@@ -300,7 +301,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                     redo_primers = primers
         """
         
-    return redo_primers, redo_discrete_conditions, redo_continuous_conditions
+    return redo_primers, redo_discrete_conditions, redo_continuous_conditions,mid_files
 
 if __name__ == '__main__':
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -443,7 +444,7 @@ if __name__ == '__main__':
         discrete_conditions_run = deepcopy(discrete_conditions)
         continuous_conditions_run = deepcopy(continuous_conditions)
         while not (primers_run == [] or discrete_conditions_run == [] or continuous_conditions_run == []):
-            primers_run, discrete_conditions_run, continuous_conditions_run = generate(
+            primers_run, discrete_conditions_run, continuous_conditions_run,_ = generate(
                         model, maps, device, 
                         midi_output_dir, args.conditioning, discrete_conditions=discrete_conditions_run, 
                         min_n_instruments=args.min_n_instruments,continuous_conditions=continuous_conditions_run,

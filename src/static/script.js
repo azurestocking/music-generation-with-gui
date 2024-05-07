@@ -16,6 +16,7 @@ window.onload = function() {
     document.getElementById('reloadButton').disabled = true;
 };
 
+/*
 function updateProgress() {
     let progress = 0;
     const interval = setInterval(() => {
@@ -28,6 +29,7 @@ function updateProgress() {
         }
     }, 300); // 假设每300ms更新一次
 }
+*/
 
 function appendArousal() {
     document.getElementById('loading_spinner').classList.add('show');
@@ -109,19 +111,70 @@ socket.on('new_midi', function(data) {
     document.getElementById('loading_spinner').style.display = 'none';
     console.log("Received new MIDI file:", data.filename);
     // 使用接收到的文件名从后端加载 MIDI 文件
-    fetchAndLoadMidiFile(data.filename);
+    fetchAndLoadMidiFile(data.filename,false);
 });
+
+let currentFileIndex = 0;  // 目前正在播放的文件索引
+let fileList = [];  // 从后端接收到的文件列表
+
+// 监听来自后端的 'new_midi_list' 事件
+socket.on('new_midi_list', function(data) {
+    document.getElementById('loading_spinner').style.display = 'none';
+    console.log("Received new MIDI files list:", data.filename);
+    fileList = data.filename;  // 保存文件列表
+    currentFileIndex = 0;  // 重置播放索引
+    
+    fetchAndLoadMidiFile(fileList[0],false);  // 加载列表中的第一个文件
+    
+});
+
+function loadNextMidiFile() {
+    currentFileIndex++;
+    if (currentFileIndex < fileList.length) {
+        fetchAndLoadMidiFile(fileList[currentFileIndex],true);
+    } else {
+        console.log('播放列表结束');
+        return;
+    }
+}
 
 // Set up Socket.IO client
 // 假设从后端接收到的 filename 已正确传递到此函数
-function fetchAndLoadMidiFile(filename) {
+function fetchAndLoadMidiFile(filename,loaded) {
+    let i = 0;
+    console.log('Current file index: ', currentFileIndex);
+
     const midiPlayer = document.getElementById('midiPlayer');
     const midiVisualizer = document.getElementById('midiVisualizer');
     const midiFileUrl = `/get_midi/${filename}`; // 假设你的服务器能够通过这个URL提供MIDI文件
 
-    console.log(midiFileUrl);
     midiPlayer.src = midiFileUrl;
     midiVisualizer.src = midiFileUrl;
+    
+    midiPlayer.reload();
+   
+    // Move to the next segment
+    midiPlayer.addEventListener('stop', () => {
+        // console.log("Current Time:", midiPlayer.currentTime);
+        // console.log("Duration:", midiPlayer.duration);
+
+        if (midiPlayer.currentTime >= midiPlayer.duration - 0.001 && i===0) {
+            i++;
+            console.log("Playback finished. Loading next file...");
+            loadNextMidiFile();
+        } else {
+            console.log("Exit accidentally because the current time does not reach the exact duration.");
+        }
+    });
+
+    // 监听load事件
+    if(loaded){
+        midiPlayer.addEventListener('load', () => {
+            if(i===0 && !midiPlayer.playing){
+                midiPlayer.start();
+            }
+        })
+    }
 
     const valueSetter = document.getElementById('valueSetter');
     const bsCollapse = new bootstrap.Collapse(valueSetter, {

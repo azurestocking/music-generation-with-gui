@@ -19,6 +19,7 @@ model_path = f"{model_directory}/model.pt"
 config_path = f"{model_directory}/model_config.pt"
 output_directory = f"{model_directory}/generations"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)
@@ -33,7 +34,7 @@ model.eval()
 
 # Shared variable for conditions
 condition_lock = threading.Lock()
-gen_len = 2048
+gen_len = 1024
 arousal = np.zeros(gen_len)
 valence = np.zeros(gen_len) 
 arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
@@ -48,36 +49,34 @@ def home():
     return render_template('index.html')
 
 def generate_continuously():
-    print("Starting generation...")
-    generate(
-        model=model,
-        maps=maps,
-        device=device,
-        out_dir=output_directory,
-        conditioning="continuous_concat",
-        varying_condition=varying_condition,
-        gen_len=gen_len,
-        temperatures=[1.2, 1.2],
-        penalty_coeff=0.5,
-        min_n_instruments=2,
-        verbose=True,
-        stop_event=stop_event
-    )
-    print("Generation complete.")
-    
-    if not stop_event.is_set():
-        print("Generation finished normally.")
-    else:
-        print("Generation was stopped early.")
+    with app.app_context():
+        print("Starting generation...")
+        _,_,_,filelist = generate(
+            model=model,
+            maps=maps,
+            device=device,
+            out_dir=output_directory,
+            conditioning="continuous_concat",
+            varying_condition=varying_condition,
+            gen_len=gen_len,
+            temperatures=[1.2, 1.2],
+            penalty_coeff=0.5,
+            min_n_instruments=2,
+            verbose=True,
+            stop_event=stop_event
+        )
+        print("Generation complete.")
+        
+        # list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
+        # latest_file = max(list_of_files, key=os.path.getctime, default=None)
 
-    list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
-    latest_file = max(list_of_files, key=os.path.getctime, default=None)
-    if latest_file:
-        filename = os.path.basename(latest_file)
-        socketio.emit('new_midi', {'filename': filename})
-        return jsonify({"message": "File generated successfully."})
-    else:
-        return jsonify({"message": "No file generated."}), 404
+        # 判断filelist不为空
+        if filelist :
+            # filename = os.path.basename(latest_file)
+            socketio.emit('new_midi_list', {'filename': filelist})
+            return jsonify({"message": "File generated successfully."})
+        else:
+            return jsonify({"message": "No file generated."}), 404
 
 @socketio.on('arousal_update')
 def update_condition(data):
@@ -111,4 +110,4 @@ def get_midi(filename):
     return send_file(os.path.join(output_directory, f'{filename}'), mimetype='audio/midi')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
