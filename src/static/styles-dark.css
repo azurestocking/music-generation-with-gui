@@ -1,0 +1,235 @@
+:root {
+    --red: #F05454;
+    --white: #EAECEF;
+    --black: #272121;
+}  
+
+body {
+    font-family: "M PLUS 2", sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--white);
+    background: var(--black);
+}
+
+section {
+    width: 100%;
+}
+
+#section-2 {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
+h1 {
+    font-family: "Bungee Shade", sans-serif;
+    font-size: 36px;
+    text-align: center;
+}
+
+.credit {
+    font-family: "Libre Barcode 39 Extended Text", system-ui;
+    font-weight: 400;
+    font-size: 30px;
+    text-align: center;
+}
+
+.text-primary {
+    color: var(--red) !important;
+}
+
+.btn {
+    font-size: 14px;
+}
+
+.btn-outline-primary {
+    --bs-btn-border-width: 1px;
+    --bs-btn-color: var(--white);
+    --bs-btn-bg: var(--black);
+    --bs-btn-border-color: var(--white);
+    --bs-btn-hover-color: var(--black);
+    --bs-btn-hover-bg: var(--white);
+    --bs-btn-hover-border-color: var(--white);
+    --bs-btn-focus-shadow-rgb: 49, 132, 253;
+    --bs-btn-active-color: var(--black);
+    --bs-btn-active-bg: var(--white);
+    --bs-btn-active-border-color: var(--white);
+    --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+    --bs-btn-disabled-color: var(--white);
+    --bs-btn-disabled-bg: var(--black);
+    --bs-btn-disabled-border-color: var(--white);
+}
+
+.container {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+    background: var(--black);
+    max-width: 800px;
+    border: 10px solid var(--white);
+    position: relative;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.container:after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: -30px;
+    left: -10px;
+    width: calc(100% + 20px);
+    margin: auto;
+    border-left: 40px solid transparent;
+    border-right: 40px solid transparent;
+    border-top: 20px solid var(--white);
+}
+
+.button-container, .setter-container {
+    display: flex; 
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+}
+
+.visualizer-container {
+    position: relative; 
+    height: 350px;
+    width: 100%;
+    border: 1px solid var(--white);
+    border-top: none;
+    border-radius: 0 0 0.375rem 0.375rem;
+}
+
+midi-visualizer .piano-roll-visualizer {
+    margin: 4px;
+    margin-top: 0;
+    overflow: auto;
+    height: 100%;
+}
+
+.piano-roll-visualizer svg {
+    height: 100%;
+}
+
+.spinner-border {
+    position: absolute;
+    top: calc(50% - 1rem);
+    left: calc(50% - 1rem);
+    width: 2rem;
+    height: 2rem;
+    display: none; 
+}
+
+.spinner-border.show {
+    display: block;
+}
+
+.form-range {
+    width: 200px;
+}
+
+#valueSetter {
+    width: 100%;
+}
+
+.card {
+    width: 100%;
+    color: var(--white);
+    background-color: transparent;
+    border: 1px solid var(--white);
+}
+
+.card-body button {
+    margin-top: 1rem;
+}
+
+.camera {
+    width: 100%;
+    margin: auto;
+}
+
+.identifier {
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 200px;
+    margin: auto;
+}
+
+midi-player {
+    width: inherit;
+    display: block;
+    margin: 0px;
+}
+
+midi-player::part(control-panel) {
+    background: transparent;
+    border: 1px solid var(--white);
+    border-radius: 0.375rem 0.375rem 0 0;
+}
+
+midi-player::part(play-button) {
+    color: var(--black);
+    border: 0px solid var(--white);
+    background-color: var(--white);
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+midi-player::part(time) {
+    color: var(--white);
+    font-size: 12px;
+    font-family: "M PLUS 2", sans-serif;
+    font-weight: 300;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    background-color: var(--red);
+}
+
+#midiVisualizer {
+    width: 100%;
+    height: 100%;
+}
+
+midi-visualizer .piano-roll-visualizer {
+    margin: 4px;
+    margin-top: 0;
+    height: 100%;
+    overflow: auto;
+}
+
+midi-visualizer svg rect.note {
+    fill: var(--white);
+}
+
+midi-visualizer svg rect.note.active {
+    fill: var(--red);
+    stroke: var(--white);
+}
+
+#change_points, #arousal_list:empty {
+    display: none;
+}
+
+#change_points, #arousal_list {
+    height: 1rem; 
+    background-color: white; 
+    position: relative; 
+    width: 100%; 
+    overflow: visible;
+}
+
+.indicator {
+    position: absolute;
+    height: 100%;
+    color: black;
+    font-size: 1rem;
+    white-space: nowrap;
+    transform: translateY(-50%);
+}
