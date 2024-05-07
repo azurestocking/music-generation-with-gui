@@ -5,8 +5,9 @@
 }  
 
 body {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: "M PLUS 2", sans-serif;
     font-size: 16px;
+    font-weight: 400;
     color: var(--blue);
     background: var(--cream);
 }
@@ -15,8 +16,20 @@ section {
     width: 100%;
 }
 
+#section-2 {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+}
+
 h1 {
-    font-weight: bold;
+    font-family: "Bungee Shade", sans-serif;
+    font-size: 36px;
+    text-align: center;
+}
+
+.credit {
+    font-family: "Libre Barcode 39 Extended Text", system-ui;
+    font-weight: 400;
     font-size: 30px;
     text-align: center;
 }
@@ -79,7 +92,7 @@ h1 {
 
 .visualizer-container {
     position: relative; 
-    height: 330px;
+    height: 350px;
     width: 100%;
     border: 2px solid var(--blue);
     border-top: none;
@@ -166,8 +179,16 @@ midi-player::part(play-button) {
 midi-player::part(time) {
     color: var(--blue);
     font-size: 12px;
-    font-family: monospace;
+    font-family: "M PLUS 2", sans-serif;
+    font-weight: 300;
 }
+
+/*
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    background-color: var(--green);
+}
+*/
 
 #midiVisualizer {
     width: 100%;

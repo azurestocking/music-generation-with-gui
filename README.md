@@ -1,10 +1,10 @@
-## Prerequisite
+## Installation
+
+Prerequisite:
 
 * Python 3.8 (ubuntu 20.04)
 
 * Node.js 14.21.3
-
-## Installation
 
 To setup the environment: 
 
