@@ -4,7 +4,7 @@
 
 Capabilities:
 
-* Plays the music segments generated on the fly.
+* Plays the queued clips on the fly.
 
 TODOs:
 
