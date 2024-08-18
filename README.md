@@ -1,5 +1,7 @@
 # Music Generator v3
 
+## Progress
+
 Capabilities:
 
 * Plays the music segments generated on the fly.
@@ -86,7 +88,7 @@ To generate MIDI using pretrained models with style interpolation:
 To generate MIDI using pretrained models with style interpolation on user interface:
 
 * Replicate the previous steps
-* Go to ```src``` folder and run `flask run` 
+* Go to ```src``` folder and run `python app.py` 
 * Designate the change points and arousal values for each point in the browser
 
 ## Reference
