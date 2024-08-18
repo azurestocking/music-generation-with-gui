@@ -1,9 +1,15 @@
-# AIDJ V2
+# Music Generator v2
 
-Current Capabilities:
+## Progress
+
+Capabilities:
 
 * Allows clipping and queuing of music segments from a full-length generated piece.
-* Plays the queued clips one by one automatically in the frontend once generation is completed.
+* Plays the queued clips automatically in the frontend once generation is completed.
+
+TODOs:
+
+* Plays the queued clips on the fly.
 
 ## Prerequisite
 
