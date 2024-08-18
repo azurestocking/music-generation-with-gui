@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch()
+
 from flask import Flask, request, jsonify, render_template, send_file
 from flask_socketio import SocketIO, emit
 import threading
@@ -7,10 +10,16 @@ import numpy as np
 import os
 import glob
 from models.build_model import build_model
+from generate import socketio
 from generate import generate
+from config import midi_queue
+from queue import Empty
+import time
+
+
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio.init_app(app)
 
 # Setup paths and device configuration
 model_directory = "../output/continuous_concat"
@@ -33,7 +42,7 @@ model.eval()
 
 # Shared variable for conditions
 condition_lock = threading.Lock()
-gen_len = 1024
+gen_len = 2048
 arousal = np.zeros(gen_len)
 valence = np.zeros(gen_len) 
 arousal_tensor = torch.tensor(arousal, dtype=torch.float32).view(1, -1).to(device)
@@ -42,6 +51,8 @@ varying_condition = [valence_tensor, arousal_tensor]
 
 gen_thread = None
 stop_event = Event()
+
+thread_stop = False
 
 @app.route('/', methods=['GET'])
 def home():
@@ -64,14 +75,9 @@ def generate_continuously():
             verbose=True,
             stop_event=stop_event
         )
+        
         print("Generation complete.")
         
-        if filelist :
-            socketio.emit('new_midi_list', {'filename': filelist})
-            return jsonify({"message": "File generated successfully."})
-        else:
-            return jsonify({"message": "No file generated."}), 404
-
 @socketio.on('arousal_update')
 def update_condition(data):
     current_arousal = float(data['arousalValue'])
@@ -86,8 +92,8 @@ def start_generation(data):
     global gen_thread, stop_event
     if not gen_thread or not gen_thread.is_alive():
         stop_event.clear()
-        gen_thread = threading.Thread(target=generate_continuously)
-        gen_thread.start()
+        socketio.start_background_task(target=generate_continuously)
+        
         print("Started generation thread.")
     else:
         print("A generation thread is already running.")
@@ -104,4 +110,5 @@ def get_midi(filename):
     return send_file(os.path.join(output_directory, f'{filename}'), mimetype='audio/midi')
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True, allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=True)
+    

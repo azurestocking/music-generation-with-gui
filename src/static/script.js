@@ -16,21 +16,6 @@ window.onload = function() {
     document.getElementById('reloadButton').disabled = true;
 };
 
-/*
-function updateProgress() {
-    let progress = 0;
-    const interval = setInterval(() => {
-        if(progress < 100){
-            progress += 10; // 假设每次更新增加10%
-            document.getElementById('loading_progress_bar').style.width = progress + '%';
-            document.getElementById('loading_progress_bar').ariaValueNow = progress;
-        } else {
-            clearInterval(interval);
-        }
-    }, 300); // 假设每300ms更新一次
-}
-*/
-
 function appendArousal() {
     document.getElementById('loading_spinner').classList.add('show');
 
@@ -106,47 +91,86 @@ function startGeneration() {
     document.getElementById('reloadButton').disabled = true;
 }
 
-// 监听来自后端的 'new_midi' 事件
-socket.on('new_midi', function(data) {
-    document.getElementById('loading_spinner').style.display = 'none';
-    console.log("Received new MIDI file:", data.filename);
-    // 使用接收到的文件名从后端加载 MIDI 文件
-    fetchAndLoadMidiFile(data.filename,false);
-});
 
-let currentFileIndex = 0;  // 目前正在播放的文件索引
-let fileList = [];  // 从后端接收到的文件列表
 
-// 监听来自后端的 'new_midi_list' 事件
+let currentFileIndex = 0;  // the file index currently being played
+let fileList = [];  // the file list sent all at once
+let fileList_rt = []; // the file list sent in real-time
+
+const midiPlayer = document.getElementById('midiPlayer');
+var unload = true;
+var stoped = false;
+var start = false;
+
+
+
+// Listen for the 'new_midi_list' event
 socket.on('new_midi_list', function(data) {
-    document.getElementById('loading_spinner').style.display = 'none';
     console.log("Received new MIDI files list:", data.filename);
-    fileList = data.filename;  // 保存文件列表
-    currentFileIndex = 0;  // 重置播放索引
+    fileList = data.filename;
+    currentFileIndex = 0;
     
-    fetchAndLoadMidiFile(fileList[0],false);  // 加载列表中的第一个文件
-    
+    fetchAndLoadMidiFile(fileList[0],false);
 });
 
+// Listen for individual files sent in real-time
+socket.on('new_midi', function(data) {
+    console.log("Received new MIDI file:", data.filename);
+
+    fileList_rt.push(data.filename);
+
+    midiPlayer.addEventListener('load', () => { unload = false; });
+    midiPlayer.addEventListener('stop', () => { stoped = true; });
+    midiPlayer.addEventListener('start', () => { stoped = true; });
+
+    console.log("File list:", fileList_rt);
+    
+    if (midiPlayer.playing && !unload) {
+        console.log('case 1');
+    } else if(!midiPlayer.playing && !unload && start){
+        console.log('case 2');
+    } else if (!midiPlayer.playing && !unload && stoped && !start){
+        console.log('case 3');
+        const nextFile = fileList_rt.shift();
+        fetchAndLoadMidiFile_rt(nextFile, true);
+    } else {
+        console.log('case 4');
+        const nextFile = fileList_rt.shift();
+        fetchAndLoadMidiFile_rt(nextFile, false);
+    }
+});
+
+
+
+// load the file list
 function loadNextMidiFile() {
     currentFileIndex++;
     if (currentFileIndex < fileList.length) {
         fetchAndLoadMidiFile(fileList[currentFileIndex],true);
     } else {
-        console.log('播放列表结束');
-        return;
+        console.log('No next file');
     }
 }
 
-// Set up Socket.IO client
-// 假设从后端接收到的 filename 已正确传递到此函数
-function fetchAndLoadMidiFile(filename,loaded) {
+function loadNextMidiFile_rt() {
+    if (fileList_rt.length>0) {
+        let nextFile = fileList_rt.shift();
+        fetchAndLoadMidiFile_rt(nextFile,true);
+    } else {
+        console.log('No next file');
+    }
+}
+
+
+
+// fetch the next file
+function fetchAndLoadMidiFile(filename, loaded) {
     let i = 0;
     console.log('Current file index: ', currentFileIndex);
 
     const midiPlayer = document.getElementById('midiPlayer');
     const midiVisualizer = document.getElementById('midiVisualizer');
-    const midiFileUrl = `/get_midi/${filename}`; // 假设你的服务器能够通过这个URL提供MIDI文件
+    const midiFileUrl = `/get_midi/${filename}`;
 
     midiPlayer.src = midiFileUrl;
     midiVisualizer.src = midiFileUrl;
@@ -155,32 +179,29 @@ function fetchAndLoadMidiFile(filename,loaded) {
    
     // Move to the next segment
     midiPlayer.addEventListener('stop', () => {
-        // console.log("Current Time:", midiPlayer.currentTime);
-        // console.log("Duration:", midiPlayer.duration);
-
         if (midiPlayer.currentTime >= midiPlayer.duration - 0.001 && i===0) {
             i++;
             console.log("Playback finished. Loading next file...");
             loadNextMidiFile();
-        } else {
-            console.log("Exit accidentally because the current time does not reach the exact duration.");
         }
     });
 
-    // 监听load事件
-    if(loaded){
+    // Listen for 'load' event
+    if (loaded) {
         midiPlayer.addEventListener('load', () => {
-            if(i===0 && !midiPlayer.playing){
+            if (i===0 && !midiPlayer.playing) {
                 midiPlayer.start();
             }
         })
     }
 
+    /*
     const valueSetter = document.getElementById('valueSetter');
     const bsCollapse = new bootstrap.Collapse(valueSetter, {
         toggle: false
     });
     bsCollapse.hide();
+    */
 
     document.getElementById('startButton').classList.add('disabled');
     document.getElementById('startButton').disabled = true;
@@ -194,6 +215,62 @@ function fetchAndLoadMidiFile(filename,loaded) {
     document.getElementById('reloadButton').classList.remove('disabled');
     document.getElementById('reloadButton').disabled = false;
 }
+
+function fetchAndLoadMidiFile_rt(filename, loaded) {
+    let i = 0;
+    console.log('Current file index: ', currentFileIndex);
+
+    const midiPlayer = document.getElementById('midiPlayer');
+    const midiVisualizer = document.getElementById('midiVisualizer');
+    const midiFileUrl = `/get_midi/${filename}`;
+
+    midiPlayer.src = midiFileUrl;
+    midiVisualizer.src = midiFileUrl;
+
+    midiPlayer.reload();
+   
+    // Move to the next segment
+    midiPlayer.addEventListener('stop', () => {
+        if (midiPlayer.currentTime >= midiPlayer.duration - 0.001 && i===0) {
+            i++;
+            console.log("File list:", fileList_rt);
+            console.log("Playback finished. Loading next file...");
+            loadNextMidiFile_rt();
+        }
+    });
+    
+    // Listen for 'load' event
+    if (loaded) {
+        midiPlayer.addEventListener('load', () => {
+            if (i===0 && !midiPlayer.playing) {
+                document.getElementById('loading_spinner').classList.remove('show');
+                midiPlayer.start();
+            }
+        })
+    }
+
+    /*
+    const valueSetter = document.getElementById('valueSetter');
+    const bsCollapse = new bootstrap.Collapse(valueSetter, {
+        toggle: false
+    });
+    bsCollapse.hide();
+    */
+
+    document.getElementById('startButton').classList.add('disabled');
+    document.getElementById('startButton').disabled = true;
+  
+    document.getElementById('setButton').classList.remove('disabled');
+    document.getElementById('setButton').disabled = false;
+  
+    document.getElementById('cancelButton').classList.remove('disabled');
+    document.getElementById('cancelButton').disabled = false;
+  
+    document.getElementById('reloadButton').classList.remove('disabled');
+    document.getElementById('reloadButton').disabled = false;
+}
+
+
 
 function reloadPage() {
     window.location.reload(true);

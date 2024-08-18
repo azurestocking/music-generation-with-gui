@@ -1,3 +1,8 @@
+from flask_socketio import SocketIO
+import eventlet
+
+socketio = SocketIO()
+
 from argparse import ArgumentParser
 from copy import deepcopy
 import os
@@ -9,6 +14,7 @@ import datetime
 from utils import get_n_instruments
 from models.build_model import build_model
 from data.data_processing_reverse import ind_tensor_to_mid, ind_tensor_to_str
+
 
 # os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -88,7 +94,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
         i = 0
         segment_start = 0
         mid_files = []
-
+        
         while i < gen_len:
             if stop_event.is_set():
                 print("Generation stopped by stop_event.")
@@ -140,6 +146,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 except:
                     pass
             
+            # select and apply temperature based on the type of event being generated
             effective_temps = []
             for j in range(batch_size):
                 gen_idx = gen_inds[0, j].item()
@@ -176,7 +183,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
             if top_p > 0 and top_p < 1:
                 cumulative_probs = torch.cumsum(F.softmax(output, dim=-1), dim=-1)
                 remove_inds = cumulative_probs > top_p
-                remove_inds[:, 0] = False
+                remove_inds[:, 0] = False   # at least keep top value
                 output[remove_inds] = -float("inf")
 
             output = F.softmax(output, dim=-1)
@@ -193,7 +200,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
             """
             # BREAK FULL-LENGTH OUTPUTS INTO SEVERAL SEGMENTS
             """
-            clip_unit = 512
+            clip_unit = 256
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
                 segment_tensor = gen_song_tensor[segment_start:i+1]
@@ -220,9 +227,15 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 segment_filename += ".mid"
                 segment_path = os.path.join(out_dir, segment_filename)
                 mid_files.append(segment_filename)
+                
                 # save the segment as MIDI
                 midi_data = ind_tensor_to_mid(segment_tensor, maps["idx2tuple"], maps["idx2event"])
                 midi_data.write(segment_path)
+
+                eventlet.sleep(0.5)
+                socketio.emit('new_midi', {'filename': segment_filename})
+                
+                print('send to backend queue'+segment_filename)
                 
                 if verbose:
                     print(f"Saved MIDI segment to {segment_path}")

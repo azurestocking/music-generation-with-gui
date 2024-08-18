@@ -1,3 +1,15 @@
+# Music Generator v3
+
+Capabilities:
+
+* Plays the music segments generated on the fly.
+
+TODOs:
+
+* Begins loading the player only after the second file is generated.
+
+* Change the `varying_condition` only after the current segment has finished generating.
+
 ## Installation
 
 Prerequisite:
