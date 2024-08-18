@@ -19,7 +19,6 @@ model_path = f"{model_directory}/model.pt"
 config_path = f"{model_directory}/model_config.pt"
 output_directory = f"{model_directory}/generations"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
 
 if not os.path.exists(output_directory):
     os.makedirs(output_directory)
@@ -67,12 +66,7 @@ def generate_continuously():
         )
         print("Generation complete.")
         
-        # list_of_files = glob.glob(os.path.join(output_directory, '*.mid'))
-        # latest_file = max(list_of_files, key=os.path.getctime, default=None)
-
-        # 判断filelist不为空
         if filelist :
-            # filename = os.path.basename(latest_file)
             socketio.emit('new_midi_list', {'filename': filelist})
             return jsonify({"message": "File generated successfully."})
         else:
@@ -104,7 +98,7 @@ def stop_generation():
     stop_event.set()
     print("Stop signal received.")
 
-# TODO: queue the clips generated in reasonable order and serve them for the player
+# Queue the clips generated in reasonable order and serve them for the player
 @app.route('/get_midi/<filename>', methods=['GET'])
 def get_midi(filename):
     return send_file(os.path.join(output_directory, f'{filename}'), mimetype='audio/midi')
