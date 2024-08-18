@@ -16,21 +16,6 @@ window.onload = function() {
     document.getElementById('reloadButton').disabled = true;
 };
 
-/*
-function updateProgress() {
-    let progress = 0;
-    const interval = setInterval(() => {
-        if(progress < 100){
-            progress += 10; // 假设每次更新增加10%
-            document.getElementById('loading_progress_bar').style.width = progress + '%';
-            document.getElementById('loading_progress_bar').ariaValueNow = progress;
-        } else {
-            clearInterval(interval);
-        }
-    }, 300); // 假设每300ms更新一次
-}
-*/
-
 function appendArousal() {
     document.getElementById('loading_spinner').classList.add('show');
 
@@ -155,9 +140,6 @@ function fetchAndLoadMidiFile(filename,loaded) {
    
     // Move to the next segment
     midiPlayer.addEventListener('stop', () => {
-        // console.log("Current Time:", midiPlayer.currentTime);
-        // console.log("Duration:", midiPlayer.duration);
-
         if (midiPlayer.currentTime >= midiPlayer.duration - 0.001 && i===0) {
             i++;
             console.log("Playback finished. Loading next file...");

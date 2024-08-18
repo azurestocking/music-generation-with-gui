@@ -1,7 +1,13 @@
+# AIDJ V2
+
+Current Capabilities:
+
+* Allows clipping and queuing of music segments from a full-length generated piece.
+* Plays the queued clips one by one automatically in the frontend once generation is completed.
+
 ## Prerequisite
 
 * Python 3.8 (ubuntu 20.04)
-
 * Node.js 14.21.3
 
 ## Installation

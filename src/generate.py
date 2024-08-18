@@ -87,8 +87,8 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
     with torch.no_grad():
         i = 0
         segment_start = 0
-        # 定义本次生成的mid文件列表
         mid_files = []
+
         while i < gen_len:
             if stop_event.is_set():
                 print("Generation stopped by stop_event.")
@@ -96,11 +96,9 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
 
             i += 1
 
-            # print the remaining steps to complete the generation
             if verbose:
                 print(gen_len - i, end="", flush=True)
 
-            # prepare and trim the inputs to prevent excessive memory usage and to focus on recent context for generation
             gen_song_tensor = torch.cat((gen_song_tensor, gen_inds), 0)
 
             input_ = gen_song_tensor
@@ -117,7 +115,6 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 arousals = varying_condition[1][:, i-1]
                 conditions_tensor = torch.cat([valences[:, None], arousals[:, None]], dim=-1)
 
-                # Print the current arousal value at each timestep
                 if verbose:
                     formatted_arousal = f"{arousals.item():.2f}"
                     print(f"({formatted_arousal})", end=" ")
@@ -129,14 +126,13 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 output = output.permute((1, 0, 2))
 
             # Process output, get predicted token
-            output = output[-1, :, :]     # select the last timestep's output to predict for the next token based on all previous inputs
-            output[output != output] = 0    # replaces any NaN values in the output with zeros to avoid computational errors
+            output = output[-1, :, :]
+            output[output != output] = 0
             
             if torch.all(output == 0) and verbose:
                 print("All predictions were NaN during generation")
                 output = torch.ones(output.shape).to(device)
 
-            # exclude specific symbols by setting their logits to negative infinity, removing them from consideration during sampling
             for symbol_exclude in exclude_symbols:
                 try:
                     idx_exclude = maps["tuple2idx"][symbol_exclude]
@@ -144,7 +140,6 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 except:
                     pass
             
-            # select and apply temperature based on the type of event being generated to control the randomness of sampling
             effective_temps = []
             for j in range(batch_size):
                 gen_idx = gen_inds[0, j].item()
@@ -153,16 +148,15 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 if isinstance(gen_tuple, tuple):
                     gen_event = maps["idx2event"][gen_tuple[0]]
                     if "TIMESHIFT" in gen_event:
-                        effective_temp = temperatures[0] # switch from rest temperature to note temperature
+                        effective_temp = temperatures[0]
                 effective_temps.append(effective_temp)
 
             temp_tensor = torch.Tensor([effective_temps]).to(device)
 
             # SAMPLING:
-            # apply softmax to normalize the logits
             output = F.log_softmax(output, dim=-1)
 
-            # adjust by adding repeat penalty according to temperature
+            # add repeat penalty according to temperature
             if penalty_coeff > 0:
                 repeat_counts_array = torch.Tensor(repeat_counts).to(device)
                 temp_multiplier = torch.maximum(torch.zeros_like(repeat_counts_array, device=device), 
@@ -172,27 +166,25 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
 
             output /= temp_tensor.t()
             
-            # enforce top-k constraint to refine the choice set
+            # enforce constraint to refine the choice set
             if top_k <= 0 or top_k > output.size(-1): 
                 top_k_eff = output.size(-1)
             else:
                 top_k_eff = top_k
             output, top_inds = torch.topk(output, top_k_eff)
 
-            # enforce top-p constraint to refine the choice set
             if top_p > 0 and top_p < 1:
                 cumulative_probs = torch.cumsum(F.softmax(output, dim=-1), dim=-1)
                 remove_inds = cumulative_probs > top_p
-                remove_inds[:, 0] = False   # at least keep top value
+                remove_inds[:, 0] = False
                 output[remove_inds] = -float("inf")
 
             output = F.softmax(output, dim=-1)
 
-            # sample from the resulting distribution to determine the next set of tokens
             inds_sampled = torch.multinomial(output, 1, replacement=True)
             gen_inds = top_inds.gather(1, inds_sampled).t()
 
-            # update repeat counts based on the number of available choices to discourage repetitive outputs by adjusting the sampling temperature dynamically
+            # discourage repetitive outputs by adjusting the sampling temperature dynamically
             num_choices = torch.sum((output > 0).int(), -1)
             for j in range(batch_size):
                 if num_choices[j] <= 2: repeat_counts[j] += 1
@@ -201,7 +193,7 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
             """
             # BREAK FULL-LENGTH OUTPUTS INTO SEVERAL SEGMENTS
             """
-            clip_unit = 256
+            clip_unit = 512
 
             if (i + 1) % clip_unit == 0 or i + 1 == gen_len:
                 segment_tensor = gen_song_tensor[segment_start:i+1]
@@ -238,7 +230,6 @@ def generate(model, maps, device, out_dir, conditioning, stop_event, short_filen
                 segment_start = i + 1
 
         # OUTPUT HANDLING AND SAVING:
-        # If there are less than n instruments, repeat generation for specific condition
         redo_primers, redo_discrete_conditions, redo_continuous_conditions = [], [], []
 
         """
