@@ -16,7 +16,7 @@ Issues:
 
 Prerequisite:
 
-* Python 3.8 (ubuntu 20.04)
+* Python 3.8
 
 * Node.js 14.21.3
 
