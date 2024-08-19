@@ -142,7 +142,7 @@ socket.on('new_midi', function(data) {
 
 
 
-// load the file list
+// Load the next file
 function loadNextMidiFile() {
     currentFileIndex++;
     if (currentFileIndex < fileList.length) {
@@ -163,7 +163,7 @@ function loadNextMidiFile_rt() {
 
 
 
-// fetch the next file
+// fetch and load files
 function fetchAndLoadMidiFile(filename, loaded) {
     let i = 0;
     console.log('Current file index: ', currentFileIndex);

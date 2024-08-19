@@ -6,11 +6,11 @@ Capabilities:
 
 * Plays the queued clips on the fly.
 
-TODOs:
+Issues:
 
 * Begins loading the player only after the second file is generated.
 
-* Change the `varying_condition` only after the current segment has finished generating.
+* Changes the `varying_condition` only after the current segment has finished generating.
 
 ## Installation
 
