@@ -114,6 +114,8 @@ socket.on('new_midi_list', function(data) {
     fetchAndLoadMidiFile(fileList[0],false);
 });
 
+
+
 // Load the next file
 function loadNextMidiFile() {
     currentFileIndex++;
@@ -124,6 +126,8 @@ function loadNextMidiFile() {
         return;
     }
 }
+
+
 
 // Fetch and load files
 function fetchAndLoadMidiFile(filename,loaded) {
@@ -177,6 +181,8 @@ function fetchAndLoadMidiFile(filename,loaded) {
     document.getElementById('reloadButton').classList.remove('disabled');
     document.getElementById('reloadButton').disabled = false;
 }
+
+
 
 function reloadPage() {
     window.location.reload(true);
