@@ -91,47 +91,48 @@ function startGeneration() {
     document.getElementById('reloadButton').disabled = true;
 }
 
-// 监听来自后端的 'new_midi' 事件
+
+
+let currentFileIndex = 0;  // the file index currently being played
+let fileList = [];  // the file list sent from backend
+
+// Listen for the 'new_midi' event from backend
 socket.on('new_midi', function(data) {
     document.getElementById('loading_spinner').style.display = 'none';
     console.log("Received new MIDI file:", data.filename);
-    // 使用接收到的文件名从后端加载 MIDI 文件
+
     fetchAndLoadMidiFile(data.filename,false);
 });
 
-let currentFileIndex = 0;  // 目前正在播放的文件索引
-let fileList = [];  // 从后端接收到的文件列表
-
-// 监听来自后端的 'new_midi_list' 事件
+// Listen for the 'new_midi_list' event from backend
 socket.on('new_midi_list', function(data) {
     document.getElementById('loading_spinner').style.display = 'none';
     console.log("Received new MIDI files list:", data.filename);
-    fileList = data.filename;  // 保存文件列表
-    currentFileIndex = 0;  // 重置播放索引
+    fileList = data.filename;
+    currentFileIndex = 0;
     
-    fetchAndLoadMidiFile(fileList[0],false);  // 加载列表中的第一个文件
-    
+    fetchAndLoadMidiFile(fileList[0],false);
 });
 
+// Load the next file
 function loadNextMidiFile() {
     currentFileIndex++;
     if (currentFileIndex < fileList.length) {
         fetchAndLoadMidiFile(fileList[currentFileIndex],true);
     } else {
-        console.log('播放列表结束');
+        console.log('No next file');
         return;
     }
 }
 
-// Set up Socket.IO client
-// 假设从后端接收到的 filename 已正确传递到此函数
+// Fetch and load files
 function fetchAndLoadMidiFile(filename,loaded) {
     let i = 0;
     console.log('Current file index: ', currentFileIndex);
 
     const midiPlayer = document.getElementById('midiPlayer');
     const midiVisualizer = document.getElementById('midiVisualizer');
-    const midiFileUrl = `/get_midi/${filename}`; // 假设你的服务器能够通过这个URL提供MIDI文件
+    const midiFileUrl = `/get_midi/${filename}`;
 
     midiPlayer.src = midiFileUrl;
     midiVisualizer.src = midiFileUrl;
@@ -149,7 +150,7 @@ function fetchAndLoadMidiFile(filename,loaded) {
         }
     });
 
-    // 监听load事件
+    // Listen for 'load' event
     if(loaded){
         midiPlayer.addEventListener('load', () => {
             if(i===0 && !midiPlayer.playing){
